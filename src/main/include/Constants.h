@@ -96,6 +96,14 @@ namespace DriveConstants {
   constexpr int kRearLeftSteerMotorCanID = 6;
   constexpr int kFrontLeftDriveMotorCanID = 7;
   constexpr int kFrontLeftSteerMotorCanID = 8;
+  constexpr int kClimbingMotorCanID = 9;
+  constexpr int kElevatorLowerStageCanID = 10;
+  constexpr int kElevatorUpperStageCanID = 11;
+  constexpr int kCoralTroughMotorCanID = 12;
+  constexpr int kCoralDispenserMotorCanID = 13;
+  constexpr int kAlgaeArmMotorCanID = 14;
+  constexpr int kAlgaeLeftRollerMotorCanID = 15;
+  constexpr int kAlgaeRightRollerMotorCanID = 16;
   
   // These can flip because of gearing.
   constexpr bool kDriveMotorInverted = false;
