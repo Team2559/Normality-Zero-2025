@@ -96,14 +96,6 @@ namespace DriveConstants {
   constexpr int kRearLeftSteerMotorCanID = 6;
   constexpr int kFrontLeftDriveMotorCanID = 7;
   constexpr int kFrontLeftSteerMotorCanID = 8;
-  constexpr int kClimbingMotorCanID = 9;
-  constexpr int kElevatorLowerStageCanID = 10;
-  constexpr int kElevatorUpperStageCanID = 11;
-  constexpr int kCoralTroughMotorCanID = 12;
-  constexpr int kCoralDispenserMotorCanID = 13;
-  constexpr int kAlgaeArmMotorCanID = 14;
-  constexpr int kAlgaeLeftRollerMotorCanID = 15;
-  constexpr int kAlgaeRightRollerMotorCanID = 16;
   
   // These can flip because of gearing.
   constexpr bool kDriveMotorInverted = false;
@@ -131,4 +123,29 @@ namespace DriveConstants {
   }
 
   // TODO: Closed loop feedback for chassis speed and orientation
+}
+
+namespace ClimbConstants {
+  constexpr int kClimbingMotorCanID = 9;
+  constexpr int kRatchetServoPWMChannel = 0;
+}
+
+namespace ElevatorConstants {
+  constexpr int kLowerStageMotorCanID = 10;
+  constexpr int kUpperStageMotorCanID = 11;
+}
+
+namespace CoralTroughConstants {
+  constexpr int kRollerBarMotorCanID = 12;
+  constexpr int kFlapServoPWMChannel = 8;
+}
+
+namespace CoralShelfConstants {
+  constexpr int kDispenserMotorCanID = 13;
+}
+
+namespace AlgaeArmConstants {
+  constexpr int kArmMotorCanID = 14;
+  constexpr int kLeftRollerMotorCanID = 15;
+  constexpr int kRightRollerMotorCanID = 16;
 }
