@@ -8,9 +8,13 @@
 #include <frc2/command/RunCommand.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc/shuffleboard/Shuffleboard.h>
+#include <cameraserver/CameraServer.h>
 
 RobotContainer::RobotContainer() {
   // Initialize all of your commands and subsystems here
+
+  // Stream usb camera over the network
+  frc::CameraServer::StartAutomaticCapture();
 
   m_driveSubsystem.SetDefaultCommand(frc2::RunCommand([this]() -> void {
     const auto controls = GetDriveTeleopControls();
