@@ -119,3 +119,8 @@ void DriveSubsystem::SetModuleStates(std::array<frc::SwerveModuleState, 4> desir
     rearRightModule->SetSteerPosition(rearRight.angle.Radians());
   }
 }
+
+frc::Pose2d DriveSubsystem::GetPose() {
+  return m_poseEstimator->GetEstimatedPosition();
+}
+

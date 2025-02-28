@@ -63,8 +63,12 @@ void RobotContainer::ConfigureBindings() {
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  // Take the drive subsystem during auto to lockout driver controls
-  return frc2::RunCommand([&]() -> void {}, {&m_driveSubsystem}).ToPtr();
+  // Drive 1m forwards during auto
+  return frc2::RunCommand([&]() -> void {
+    m_driveSubsystem.Drive(1.0_mps, 0.0_mps, 0.0_rad_per_s, true);
+  }, {&m_driveSubsystem}).Until([&]() -> bool {
+    return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.0_m;
+  });
 }
 
 double ConditionRawTriggerInput(double RawTrigVal) noexcept

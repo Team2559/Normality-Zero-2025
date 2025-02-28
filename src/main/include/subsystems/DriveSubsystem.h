@@ -59,6 +59,8 @@ class DriveSubsystem : public frc2::SubsystemBase {
               units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
               bool fieldRelative, units::meter_t x_center, units::meter_t y_center);
   
+  frc::Pose2d GetPose();
+
   const std::array<frc::SwerveModulePosition, 4> GetModulePositions();
   void SetModuleStates(std::array<frc::SwerveModuleState, 4> desiredStates, bool steerOnly=false);
 
