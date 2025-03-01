@@ -139,9 +139,9 @@ namespace ElevatorConstants {
 
 namespace CoralTroughConstants {
   constexpr int kRollerBarMotorCanID = 12;
-  constexpr int kFlapServoPWMChannel = 8;
+  constexpr int kFlapServoPWMChannel = 9;
 
-  constexpr bool kRollerBarMotorInverted = false;
+  constexpr bool kRollerBarMotorInverted = true;
 
   constexpr int kFlapServoDown = 0;
   constexpr int kFlapServoUp = 1;
