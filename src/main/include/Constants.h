@@ -33,10 +33,10 @@ namespace DriveConstants {
   inline constexpr units::meter_t kWheelbaseLength = 0.7_m;
 
   // Zero positions for the steer of the swerve modules
-  inline constexpr units::degree_t kFrontLeftSteerOffset  = -121.1_deg;
-  inline constexpr units::degree_t kFrontRightSteerOffset = -130.6_deg;
-  inline constexpr units::degree_t kRearLeftSteerOffset   = -23.2_deg;
-  inline constexpr units::degree_t kRearRightSteerOffset  = -246.9_deg;
+  inline constexpr units::degree_t kFrontLeftSteerOffset  = 17.2_deg;
+  inline constexpr units::degree_t kFrontRightSteerOffset = 325.6_deg;
+  inline constexpr units::degree_t kRearLeftSteerOffset   = 89.2_deg;
+  inline constexpr units::degree_t kRearRightSteerOffset  = 244.4_deg;
 
   // SDS Mk3 Standard (or Fast) Gear Ratio: 8.16:1 (or 6.86:1);
   // Nominal Wheel Diameter (4"): =0.1016m;
