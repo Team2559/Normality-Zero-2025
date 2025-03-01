@@ -156,11 +156,11 @@ namespace AlgaeArmConstants {
 
   constexpr units::turn_t kArmUpPos = 0.0_deg;
   constexpr units::turn_t kArmDownPos = 90.0_deg;
-  constexpr units::turns_per_second_t kArmUpSpeed = 60.0_deg_per_s;
+  constexpr units::turns_per_second_t kArmUpSpeed = 60.0_deg_per_s; // TODO: not yet used
 
-  constexpr units::turns_per_second_t kRollerGrabSpeed { -3.0 };
+  constexpr units::turns_per_second_t kRollerGrabSpeed { -3.0 }; // TODO: Interpreted as a power
   constexpr units::second_t kRollerGrabTimeout = 5_s;
-  constexpr units::turns_per_second_t kRollerReleaseSpeed { 3.0 };
+  constexpr units::turns_per_second_t kRollerReleaseSpeed { 3.0 }; // TODO: Interpreted as a power
   constexpr units::turn_t kRollerReleaseDistance { 8.0 };
 
   namespace ArmPID {
