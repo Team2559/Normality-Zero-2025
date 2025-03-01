@@ -88,14 +88,14 @@ namespace DriveConstants {
       kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360.0_deg;
 
   // CAN ID assignments.
-  constexpr int kFrontRightDriveMotorCanID = 1;
-  constexpr int kFrontRightSteerMotorCanID = 2;
-  constexpr int kRearRightDriveMotorCanID = 3;
-  constexpr int kRearRightSteerMotorCanID = 4;
-  constexpr int kRearLeftDriveMotorCanID = 5;
-  constexpr int kRearLeftSteerMotorCanID = 6;
-  constexpr int kFrontLeftDriveMotorCanID = 7;
-  constexpr int kFrontLeftSteerMotorCanID = 8;
+  constexpr int kFrontLeftDriveMotorCanID = 1;
+  constexpr int kFrontLeftSteerMotorCanID = 2;
+  constexpr int kFrontRightDriveMotorCanID = 3;
+  constexpr int kFrontRightSteerMotorCanID = 4;
+  constexpr int kRearRightDriveMotorCanID = 5;
+  constexpr int kRearRightSteerMotorCanID = 6;
+  constexpr int kRearLeftDriveMotorCanID = 7;
+  constexpr int kRearLeftSteerMotorCanID = 8;
   
   // These can flip because of gearing.
   constexpr bool kDriveMotorInverted = false;
@@ -148,4 +148,23 @@ namespace AlgaeArmConstants {
   constexpr int kArmMotorCanID = 14;
   constexpr int kLeftRollerMotorCanID = 15;
   constexpr int kRightRollerMotorCanID = 16;
+
+  constexpr bool kArmMotorInverted = false;
+  constexpr bool kLeftRollerInverted = false;
+  constexpr bool kRightRollerInverted = true;
+
+  constexpr units::turn_t kArmUpPos = 0.0_deg;
+  constexpr units::turn_t kArmDownPos = 90.0_deg;
+
+  constexpr units::turns_per_second_t kRollerGrabSpeed { -3.0 };
+  constexpr units::second_t kRollerGrabTimeout = 5_s;
+  constexpr units::turns_per_second_t kRollerReleaseSpeed { 3.0 };
+  constexpr units::turn_t kRollerReleaseDistance { 8.0 };
+
+  namespace ArmPID {
+    constexpr double kP = 0.000;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.0;
+    constexpr double kFF = (1.0 / ((917.0_rpm).convert<units::turns_per_second>() / 1.0_V)).value();
+  }
 }
