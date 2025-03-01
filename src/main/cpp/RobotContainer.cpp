@@ -93,7 +93,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   return frc2::RunCommand([&]() -> void {
     m_driveSubsystem.Drive(-1.0_mps, 0.0_mps, 0.0_rad_per_s, true);
   }, {&m_driveSubsystem}).Until([&]() -> bool {
-    return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.0_m;
+    return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.5_m;
   });
 }
 
