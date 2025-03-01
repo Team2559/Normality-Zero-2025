@@ -67,9 +67,7 @@ frc2::CommandPtr AlgaeArmSubsystem::Grab() {
       return rightRoller.GetReverseLimitSwitch().Get();
     },
     {this}
-  ).WithDeadline(
-    frc2::WaitCommand(kRollerGrabTimeout).ToPtr()
-  );
+  ).WithTimeout(kRollerGrabTimeout);
 }
 
 frc2::CommandPtr AlgaeArmSubsystem::Release() {
