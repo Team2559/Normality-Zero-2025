@@ -143,8 +143,8 @@ namespace CoralTroughConstants {
 
   constexpr bool kRollerBarMotorInverted = true;
 
-  constexpr int kFlapServoDown = 0;
-  constexpr int kFlapServoUp = 1;
+  constexpr double kFlapServoDown = 0.0;
+  constexpr double kFlapServoUp = 0.642857142857;
 
   constexpr units::turns_per_second_t kRollerBarDispenseSpeed { 60.0 };
 
