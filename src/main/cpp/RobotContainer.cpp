@@ -64,6 +64,17 @@ void RobotContainer::ConfigureBindings() {
   m_driverController.Back().OnTrue(frc2::InstantCommand([this]() -> void {
     m_driveSubsystem.ResetFieldOrientation();
   }, {&m_driveSubsystem}).ToPtr());
+
+  m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab());
+  m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
+
+  // TODO; use speed instead of power
+  m_operatorController.RightBumper().WhileTrue(frc2::RunCommand([this]() -> void {
+    m_algaeArmSubsystem.Rotate(0.8);
+  }, {&m_algaeArmSubsystem}).ToPtr());
+  m_operatorController.RightTrigger(0.05).WhileTrue(frc2::RunCommand([this]() -> void {
+    m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis());
+  }, {&m_algaeArmSubsystem}).ToPtr());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {

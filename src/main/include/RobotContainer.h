@@ -10,6 +10,7 @@
 
 #include "Constants.h"
 #include "subsystems/DriveSubsystem.h"
+#include "subsystems/AlgaeArmSubsystem.h"
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -25,8 +26,13 @@ class RobotContainer {
   frc2::CommandPtr GetAutonomousCommand();
 
  private:
-  frc2::CommandXboxController m_driverController{
-      OperatorConstants::kDriverControllerPort};
+  frc2::CommandXboxController m_driverController {
+    OperatorConstants::kDriverControllerPort
+  };
+
+  frc2::CommandXboxController m_operatorController {
+    OperatorConstants::kOperatorControllerPort
+  };
 
   nt::GenericEntry* fastDriveSpeedEntry;
 
@@ -35,6 +41,7 @@ class RobotContainer {
 
   // The robot's subsystems are defined here...
   DriveSubsystem m_driveSubsystem;
+  AlgaeArmSubsystem m_algaeArmSubsystem;
 
   void ConfigureBindings();
 
