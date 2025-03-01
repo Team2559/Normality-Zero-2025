@@ -15,7 +15,7 @@ class AlgaeArmSubsystem : public frc2::SubsystemBase {
   frc2::CommandPtr Grab();
   frc2::CommandPtr Release();
  private:
-  
+
   SparkMax armMotor;
   SparkMax leftRoller;
   SparkMax rightRoller;

@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include "units/time.h"
 #include <units/angle.h>
 #include <units/length.h>
 #include <units/angular_velocity.h>
@@ -139,10 +140,26 @@ namespace ElevatorConstants {
 namespace CoralTroughConstants {
   constexpr int kRollerBarMotorCanID = 12;
   constexpr int kFlapServoPWMChannel = 8;
+
+  constexpr bool kRollerBarMotorInverted = false;
+
+  constexpr int kFlapServoDown = 0;
+  constexpr int kFlapServoUp = 1;
+
+  constexpr units::turns_per_second_t kRollerBarDispenseSpeed { 60.0 };
+
+  constexpr units::second_t kFlapServoLowerTime = 3_s;
+  constexpr units::turn_t kRollerBarStopDistance { 3.0 };
 }
 
 namespace CoralShelfConstants {
   constexpr int kDispenserMotorCanID = 13;
+
+  constexpr bool kDispenserMotorInverted = false;
+
+  constexpr units::turns_per_second_t kDispenserMotorSpeed { 60.0 };
+
+  constexpr units::turn_t kDispenserMotorStopDistance { 6.0 };
 }
 
 namespace AlgaeArmConstants {

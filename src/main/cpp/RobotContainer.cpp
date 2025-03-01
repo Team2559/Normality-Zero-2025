@@ -74,6 +74,8 @@ void RobotContainer::ConfigureBindings() {
     m_driveSubsystem.ResetFieldOrientation();
   }, {&m_driveSubsystem}).ToPtr());
 
+  m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
+  m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());
   m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab());
   m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
 
