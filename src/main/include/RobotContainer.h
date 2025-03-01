@@ -9,8 +9,9 @@
 #include <networktables/GenericEntry.h>
 
 #include "Constants.h"
-#include "subsystems/CoralTroughSubsystem.h"
 #include "subsystems/DriveSubsystem.h"
+#include "subsystems/ClimbSubsystem.h"
+#include "subsystems/CoralTroughSubsystem.h"
 #include "subsystems/AlgaeArmSubsystem.h"
 
 /**
@@ -43,6 +44,7 @@ class RobotContainer {
 
   // The robot's subsystems are defined here...
   DriveSubsystem m_driveSubsystem;
+  ClimbSubsystem m_climbSubsystem;
   AlgaeArmSubsystem m_algaeArmSubsystem;
   CoralTroughSubsystem m_coralTroughSubsystem;
 

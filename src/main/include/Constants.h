@@ -36,8 +36,8 @@ namespace DriveConstants {
 
   // Zero positions for the steer of the swerve modules
   inline constexpr units::degree_t kFrontLeftSteerOffset  = 17.2_deg;
-  inline constexpr units::degree_t kFrontRightSteerOffset = 325.6_deg;
-  inline constexpr units::degree_t kRearLeftSteerOffset   = 89.2_deg;
+  inline constexpr units::degree_t kFrontRightSteerOffset = 89.2_deg;
+  inline constexpr units::degree_t kRearLeftSteerOffset   = 325.6_deg;
   inline constexpr units::degree_t kRearRightSteerOffset  = 244.4_deg;
 
   // SDS Mk3 Standard (or Fast) Gear Ratio: 8.16:1 (or 6.86:1);
@@ -58,7 +58,7 @@ namespace DriveConstants {
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
   // will throw off kMaxDriveSpeed and kMaxTurnRate, as well as drive values.
-  inline constexpr units::meter_t kDriveDistancePerRotation = 1.0_m / 16.79;
+  inline constexpr units::meter_t kDriveDistancePerRotation = 1.0_m / 18.48;
 
   // SDS Mk3 Standard (or Fast) Max Free Speed: 12.1 (or 14.4) feet/second;
   // Review your motor and swerve module configuration for nominal free speed
@@ -92,12 +92,12 @@ namespace DriveConstants {
   // CAN ID assignments.
   constexpr int kFrontLeftDriveMotorCanID = 1;
   constexpr int kFrontLeftSteerMotorCanID = 2;
-  constexpr int kFrontRightDriveMotorCanID = 3;
-  constexpr int kFrontRightSteerMotorCanID = 4;
+  constexpr int kRearLeftDriveMotorCanID = 3;
+  constexpr int kRearLeftSteerMotorCanID = 4;
   constexpr int kRearRightDriveMotorCanID = 5;
   constexpr int kRearRightSteerMotorCanID = 6;
-  constexpr int kRearLeftDriveMotorCanID = 7;
-  constexpr int kRearLeftSteerMotorCanID = 8;
+  constexpr int kFrontRightDriveMotorCanID = 7;
+  constexpr int kFrontRightSteerMotorCanID = 8;
   
   // These can flip because of gearing.
   constexpr bool kDriveMotorInverted = false;
@@ -128,8 +128,15 @@ namespace DriveConstants {
 }
 
 namespace ClimbConstants {
-  constexpr int kClimbingMotorCanID = 9;
+  constexpr int kClimbMotorCanID = 9;
   constexpr int kRatchetServoPWMChannel = 0;
+
+  constexpr bool kClimbMotorInverted = true;
+  constexpr double kClimbPower = -0.4;
+  constexpr double kMaxClimbPower = 0.5;
+
+  constexpr double kRatchetEngaged = 0;
+  constexpr double kRatchetDisengaged = 0;
 }
 
 namespace ElevatorConstants {
