@@ -1,9 +1,7 @@
+#include <frc2/command/FunctionalCommand.h>
 #include <rev/config/SparkMaxConfig.h>
-
-#include "rev/SparkBase.h"
-#include "frc2/command/FunctionalCommand.h"
-
-#include "units/angle.h"
+#include <rev/SparkBase.h>
+#include <units/angle.h>
 
 #include "subsystems/CoralShelfSubsystem.h"
 #include "Constants.h"
