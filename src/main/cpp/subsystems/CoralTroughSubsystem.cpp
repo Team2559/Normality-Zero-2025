@@ -1,11 +1,11 @@
 #include <rev/config/SparkMaxConfig.h>
+#include <rev/SparkBase.h>
 
-#include "rev/SparkBase.h"
-#include "frc2/command/FunctionalCommand.h"
+#include <frc2/command/FunctionalCommand.h>
+#include <units/angle.h>
 
 #include "subsystems/CoralTroughSubsystem.h"
 #include "Constants.h"
-#include "units/angle.h"
 
 using namespace CoralTroughConstants;
 
