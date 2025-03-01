@@ -35,6 +35,7 @@ class RobotContainer {
   };
 
   nt::GenericEntry* fastDriveSpeedEntry;
+  nt::GenericEntry* algaeArmRaiseSpeedEntry;
 
   bool m_fieldOriented = true;
   bool m_triggerSpeedEnabled = false;

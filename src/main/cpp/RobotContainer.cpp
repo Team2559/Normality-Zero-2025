@@ -32,10 +32,19 @@ RobotContainer::RobotContainer() {
   fastDriveSpeedEntry = frc::Shuffleboard::GetTab("Drive")
     .Add("Max Speed", 1.0)
     .WithWidget(frc::BuiltInWidgets::kNumberSlider)
-    .WithProperties({ // specify widget properties here
+    .WithProperties({
       {"min", nt::Value::MakeDouble(0.0)},
       {"max", nt::Value::MakeDouble(1.0)}
-   })
+    })
+    .GetEntry();
+
+  algaeArmRaiseSpeedEntry = frc::Shuffleboard::GetTab("Mechanisms")
+    .Add("Algae Arm Raise Speed", 0.8)
+    .WithWidget(frc::BuiltInWidgets::kNumberSlider)
+    .WithProperties({
+      {"min", nt::Value::MakeDouble(0.0)},
+      {"max", nt::Value::MakeDouble(1.0)}
+    })
     .GetEntry();
 }
 
@@ -70,7 +79,7 @@ void RobotContainer::ConfigureBindings() {
 
   // TODO; use speed instead of power
   m_operatorController.RightBumper().WhileTrue(frc2::RunCommand([this]() -> void {
-    m_algaeArmSubsystem.Rotate(0.8);
+    m_algaeArmSubsystem.Rotate(algaeArmRaiseSpeedEntry->GetDouble(0.8));
   }, {&m_algaeArmSubsystem}).ToPtr());
   m_operatorController.RightTrigger(0.05).WhileTrue(frc2::RunCommand([this]() -> void {
     m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis());
