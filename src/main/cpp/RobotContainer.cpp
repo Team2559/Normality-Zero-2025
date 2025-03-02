@@ -111,7 +111,9 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
     m_driveSubsystem.Drive(-1.0_mps, 0.0_mps, 0.0_rad_per_s, true);
   }, {&m_driveSubsystem}).Until([&]() -> bool {
     return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.5_m;
-  });
+  }).AndThen(
+    m_coralTroughSubsystem.DispenseCoral()
+  );
 }
 
 double ConditionRawTriggerInput(double RawTrigVal) noexcept

@@ -16,7 +16,7 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
   {
     SparkMaxConfig rollerBarConfig;
     rollerBarConfig
-      .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
+      .SetIdleMode(SparkMaxConfig::IdleMode::kBrake)
       .SmartCurrentLimit(20.0)
       .Inverted(kRollerBarMotorInverted);
 

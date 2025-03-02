@@ -155,7 +155,7 @@ namespace CoralTroughConstants {
 
   constexpr units::second_t kFlapServoLowerTime = 3_s;
 
-  constexpr units::turns_per_second_t kRollerBarDispenseSpeed { 60.0 };
+  constexpr units::turns_per_second_t kRollerBarDispenseSpeed { 0.8 };
   constexpr units::turn_t kRollerBarStopDistance { 6.0 };
 }
 
