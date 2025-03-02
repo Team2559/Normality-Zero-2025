@@ -66,7 +66,7 @@ namespace DriveConstants {
   // measured. Half of theoretical free speed is a reasonable starting value
   // (since something in the ballpark is needed here in order to to drive).
   constexpr units::meters_per_second_t kMaxDriveSpeed = 22.1_fps / 2.0;
-  constexpr double kSlowDrivePercent = 0.25;
+  constexpr double kSlowDrivePercent = 0.50;
 
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
