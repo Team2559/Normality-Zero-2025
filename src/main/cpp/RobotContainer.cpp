@@ -10,6 +10,68 @@
 #include <frc/shuffleboard/Shuffleboard.h>
 #include <cameraserver/CameraServer.h>
 
+double ConditionRawTriggerInput(double RawTrigVal) noexcept
+{
+  // Input deadband around 0.0 (+/- range).
+  double deadZoneVal = 0.05;
+  double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
+
+  if (RawTrigVal < deadZoneVal)
+  {
+    // Trigger is within the deadzone
+    return 0;
+  }
+  else
+  {
+    // Trigger is outside the deadzone, scale the trigger value to make low magnitudes more sensitive
+    RawTrigVal -= deadZoneVal;
+    RawTrigVal *= deadZoneCorrection;
+    return std::pow(RawTrigVal, 3.0); // Cube the trigger value
+  }
+}
+
+double ConditionRawJoystickInput(double RawJoystickVal, double mixer = 0.75) noexcept
+{
+  /*
+  Add some deadzone, so the robot doesn't drive when the joysticks are released
+  and return to "zero". These implement a continuous deadband, one in which
+  the full range of outputs may be generated, once joysticks move outside the
+  deadband.
+
+  Also, cube the result, to provide more operator control. Just cubing the raw
+  value does a pretty good job with the deadband, but doing both is easy and
+  guarantees no movement in the deadband. Cubing makes it easier to command
+  smaller/slower movements, while still being able to command full power. The
+  'mixer` parameter specifies what percentage of contribution towards the 
+  output the cubed value has, with the remainder coming from the linear term.
+  */
+
+  // Input deadband around 0.0 (+/- range).
+  constexpr double deadZoneVal = 0.05;
+  constexpr double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
+
+  if (RawJoystickVal >= -deadZoneVal && RawJoystickVal <= +deadZoneVal)
+  {
+    // Stick is within deadzone
+    RawJoystickVal = 0.0;
+  }
+  else if (RawJoystickVal < -deadZoneVal)
+  {
+    // Stick is "below" deadzone
+    RawJoystickVal += deadZoneVal;
+    RawJoystickVal *= deadZoneCorrection;
+  }
+  else if (RawJoystickVal > +deadZoneVal)
+  {
+    // Stick is "above" deadzone
+    RawJoystickVal -= deadZoneVal;
+    RawJoystickVal *= deadZoneCorrection;
+  }
+
+  // Cube the joystick value, and do a percentage mix with the unscaled value
+  return mixer * std::pow(RawJoystickVal, 3.0) + (1.0 - mixer) * RawJoystickVal;
+}
+
 RobotContainer::RobotContainer() {
   // Initialize all of your commands and subsystems here
 
@@ -103,79 +165,27 @@ void RobotContainer::ConfigureBindings() {
     },
     {&m_climbSubsystem}
   ).ToPtr());
+
+  // m_elevatorSubsystem.SetDefaultCommand(frc2::RunCommand(
+  //   [this]() -> void {
+  //     m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(m_operatorController.GetLeftY()));
+  //     m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(m_operatorController.GetLeftX()));
+  //   },
+  //   {&m_elevatorSubsystem}
+  // ));
+
+  // m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   // Drive 1m forwards during auto
   return frc2::RunCommand([&]() -> void {
-    m_driveSubsystem.Drive(-0.3_mps, 0.0_mps, 0.0_rad_per_s, true);
+    m_driveSubsystem.Drive(-0.1_mps, 0.0_mps, 0.0_rad_per_s, true);
   }, {&m_driveSubsystem}).Until([&]() -> bool {
     return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.5_m;
   }).AndThen(
     m_coralTroughSubsystem.DispenseCoral()
   );
-}
-
-double ConditionRawTriggerInput(double RawTrigVal) noexcept
-{
-  // Input deadband around 0.0 (+/- range).
-  double deadZoneVal = 0.05;
-  double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
-
-  if (RawTrigVal < deadZoneVal)
-  {
-    // Trigger is within the deadzone
-    return 0;
-  }
-  else
-  {
-    // Trigger is outside the deadzone, scale the trigger value to make low magnitudes more sensitive
-    RawTrigVal -= deadZoneVal;
-    RawTrigVal *= deadZoneCorrection;
-    return std::pow(RawTrigVal, 3.0); // Cube the trigger value
-  }
-}
-
-double ConditionRawJoystickInput(double RawJoystickVal, double mixer = 0.75) noexcept
-{
-  /*
-  Add some deadzone, so the robot doesn't drive when the joysticks are released
-  and return to "zero". These implement a continuous deadband, one in which
-  the full range of outputs may be generated, once joysticks move outside the
-  deadband.
-
-  Also, cube the result, to provide more operator control. Just cubing the raw
-  value does a pretty good job with the deadband, but doing both is easy and
-  guarantees no movement in the deadband. Cubing makes it easier to command
-  smaller/slower movements, while still being able to command full power. The
-  'mixer` parameter specifies what percentage of contribution towards the 
-  output the cubed value has, with the remainder coming from the linear term.
-  */
-
-  // Input deadband around 0.0 (+/- range).
-  constexpr double deadZoneVal = 0.05;
-  constexpr double deadZoneCorrection = 1.0 / (1.0 - deadZoneVal);
-
-  if (RawJoystickVal >= -deadZoneVal && RawJoystickVal <= +deadZoneVal)
-  {
-    // Stick is within deadzone
-    RawJoystickVal = 0.0;
-  }
-  else if (RawJoystickVal < -deadZoneVal)
-  {
-    // Stick is "below" deadzone
-    RawJoystickVal += deadZoneVal;
-    RawJoystickVal *= deadZoneCorrection;
-  }
-  else if (RawJoystickVal > +deadZoneVal)
-  {
-    // Stick is "above" deadzone
-    RawJoystickVal -= deadZoneVal;
-    RawJoystickVal *= deadZoneCorrection;
-  }
-
-  // Cube the joystick value, and do a percentage mix with the unscaled value
-  return mixer * std::pow(RawJoystickVal, 3.0) + (1.0 - mixer) * RawJoystickVal;
 }
 
 std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls()

@@ -15,7 +15,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       SparkMaxConfig armConfig;
       armConfig
         .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
-        .SmartCurrentLimit(20.0)
+        .SmartCurrentLimit(10.0)
         .Inverted(kArmMotorInverted);
 
       // TODO: Setup encoder and soft limits

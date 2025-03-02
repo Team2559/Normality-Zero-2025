@@ -10,6 +10,8 @@
 #include <units/angular_velocity.h>
 #include <units/velocity.h>
 #include <units/voltage.h>
+#include <units/torque.h>
+#include <units/current.h>
 
 /**
  * The Constants header provides a convenient place for teams to hold robot-wide
@@ -26,6 +28,13 @@ namespace OperatorConstants {
   inline constexpr int kDriverControllerPort = 0;
   inline constexpr int kOperatorControllerPort = 1;
 
+}
+
+namespace MotorConstants {
+  constexpr auto kVNeoVortex = (565.0_rpm).convert<units::turns_per_second>() / 1.0_V;
+  constexpr auto kVNeo550 = (917.0_rpm).convert<units::turns_per_second>() / 1.0_V;
+  constexpr auto kTMinion = (0.01568_Nm / 1.0_A);
+  constexpr auto kVMinion = (50.75_rpm).convert<units::turns_per_second>() / 1.0_V;
 }
 
 namespace DriveConstants {
@@ -109,7 +118,7 @@ namespace DriveConstants {
     constexpr double kP = 0.000;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kFF = (1.0 / ((565.0_rpm).convert<units::turns_per_second>() / 1.0_V) / kDriveDistancePerRotation).value();
+    constexpr double kFF = (1.0 / MotorConstants::kVNeoVortex / kDriveDistancePerRotation).value();
   }
 
   // Steer encoder units are scaled for more responsive PID feedback
@@ -142,6 +151,27 @@ namespace ClimbConstants {
 namespace ElevatorConstants {
   constexpr int kLowerStageMotorCanID = 10;
   constexpr int kUpperStageMotorCanID = 11;
+
+  constexpr bool kLowerStageInverted = false;
+  constexpr bool kUpperStageInverted = true;
+
+  constexpr units::millimeter_t kLowerStageDistancePerRotation = 24 * 3_mm;
+  constexpr units::millimeter_t kUpperStageDistancePerRotation = 24 * 3_mm;
+
+  namespace LowerStagePID {
+    constexpr double kP = 0.0;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.0;
+    constexpr double kFF = (1 / MotorConstants::kVNeoVortex).value();
+  }
+
+  namespace UpperStagePID {
+    constexpr double kP = 0.0;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.0;
+    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
+    constexpr double kG = 0.0; // Gravity gain
+  }
 }
 
 namespace CoralTroughConstants {
@@ -191,6 +221,6 @@ namespace AlgaeArmConstants {
     constexpr double kP = 0.000;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kFF = (1.0 / ((917.0_rpm).convert<units::turns_per_second>() / 1.0_V)).value();
+    constexpr double kFF = (1.0 / MotorConstants::kVNeo550).value();
   }
 }
