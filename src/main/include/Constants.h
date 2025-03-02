@@ -135,8 +135,8 @@ namespace ClimbConstants {
   constexpr double kClimbPower = -0.4;
   constexpr double kMaxClimbPower = 0.5;
 
-  constexpr double kRatchetEngaged = 0;
-  constexpr double kRatchetDisengaged = 0;
+  constexpr double kRatchetEngaged = 0.4;
+  constexpr double kRatchetDisengaged = 0.2;
 }
 
 namespace ElevatorConstants {
