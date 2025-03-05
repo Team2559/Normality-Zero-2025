@@ -205,8 +205,8 @@ namespace AlgaeArmConstants {
   constexpr int kRightRollerMotorCanID = 16;
 
   constexpr bool kArmMotorInverted = false;
-  constexpr bool kLeftRollerInverted = false;
-  constexpr bool kRightRollerInverted = true;
+  constexpr bool kLeftRollerInverted = true;
+  constexpr bool kRightRollerInverted = false;
 
   constexpr units::turn_t kArmUpPos = 0.0_deg;
   constexpr units::turn_t kArmDownPos = 90.0_deg;

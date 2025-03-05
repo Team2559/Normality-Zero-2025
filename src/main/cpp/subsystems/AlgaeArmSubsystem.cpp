@@ -28,8 +28,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       leftRollerConfig
         .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
         .SmartCurrentLimit(20.0)
-        .Inverted(kLeftRollerInverted)
-        .Follow(rightRoller);
+        .Follow(rightRoller, kLeftRollerInverted != kRightRollerInverted);
 
       leftRoller.Configure(leftRollerConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
     }
@@ -39,7 +38,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       rightRollerConfig
         .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
         .SmartCurrentLimit(20.0)
-        .Inverted(kLeftRollerInverted);
+        .Inverted(kRightRollerInverted);
 
       rightRollerConfig.limitSwitch
         .ReverseLimitSwitchType(LimitSwitchConfig::kNormallyOpen)
