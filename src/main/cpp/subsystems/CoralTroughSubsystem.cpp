@@ -20,6 +20,10 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
       .SmartCurrentLimit(20.0)
       .Inverted(kRollerBarMotorInverted);
 
+    rollerBarConfig.closedLoop
+      .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
+      .Pidf(RollerPID::kP, RollerPID::kI, RollerPID::kD, RollerPID::kFF);
+
     rollerBar.Configure(rollerBarConfig, SparkMax::ResetMode::kResetSafeParameters, SparkBase::PersistMode::kNoPersistParameters);
   }
 }
@@ -47,7 +51,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       rollerBar.GetEncoder().SetPosition(0.0);
     },
     [this]() -> void {
-      rollerBar.Set(kRollerBarDispenseSpeed.value());
+      rollerBar.GetClosedLoopController().SetReference(kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
     },
     [this](bool wasCancelled) -> void {
       rollerBar.StopMotor();

@@ -185,8 +185,15 @@ namespace CoralTroughConstants {
 
   constexpr units::second_t kFlapServoLowerTime = 3_s;
 
-  constexpr units::turns_per_second_t kRollerBarDispenseSpeed { 0.8 };
+  constexpr units::revolutions_per_minute_t kRollerBarDispenseSpeed { 60.0 };
   constexpr units::turn_t kRollerBarStopDistance { 6.0 };
+
+  namespace RollerPID {
+    constexpr double kP = 0.003;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.00015;
+    constexpr double kFF = (1 / MotorConstants::kVNeo550).value();
+  }
 }
 
 namespace CoralShelfConstants {
