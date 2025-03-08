@@ -185,7 +185,7 @@ namespace CoralTroughConstants {
   constexpr bool kRollerBarMotorInverted = true;
 
   constexpr double kFlapServoDown = ( 25.0/280.0 );
-  constexpr double kFlapServoUp = (( 180.0/280.0 ) + kFlapServoDown);
+  constexpr double kFlapServoUp = (( 203.0/280.0 ) + kFlapServoDown);
 
   constexpr units::second_t kFlapServoLowerTime = 3_s;
 
