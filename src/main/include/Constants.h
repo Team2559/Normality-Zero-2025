@@ -33,9 +33,12 @@ namespace OperatorConstants {
 namespace MotorConstants {
   // Speed constant for a REV Neo Vortex, in turns per second per volt
   constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 565.0_rpm / 1.0_V;
-  constexpr auto kVNeo550 = (917.0_rpm).convert<units::turns_per_second>() / 1.0_V;
-  constexpr auto kTMinion = (0.01568_Nm / 1.0_A);
-  constexpr auto kVMinion = (50.75_rpm).convert<units::turns_per_second>() / 1.0_V;
+  // Speed constant for a REV Neo 550, in turns per second per volt
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeo550 = 917.0_rpm / 1.0_V;
+  // Torque constant for a CTR Minion, in newton-meters per amp
+  constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTMinion = 0.01568_Nm / 1.0_A;
+  // Speed constant for a CTR Minion, in turns per second per volt
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
 }
 
 namespace DriveConstants {
@@ -63,7 +66,7 @@ namespace DriveConstants {
   // SDS Mk4n L1, L2, L3 Gear Ratio: 7.13:1, 5.90:1, 5.36:1
   // Nominal Wheel Diameter (4"): =0.1016m;
   // Nominal Wheel Circumference (pi * Diameter): ~0.3192m;
-  // 5.36 / 0.3192 => ~16.79.
+  // 0.3192 / 5.90 => ~0.05401.
 
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
