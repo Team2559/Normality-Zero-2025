@@ -31,7 +31,8 @@ namespace OperatorConstants {
 }
 
 namespace MotorConstants {
-  constexpr auto kVNeoVortex = (565.0_rpm).convert<units::turns_per_second>() / 1.0_V;
+  // Speed constant for a REV Neo Vortex, in turns per second per volt
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 565.0_rpm / 1.0_V;
   constexpr auto kVNeo550 = (917.0_rpm).convert<units::turns_per_second>() / 1.0_V;
   constexpr auto kTMinion = (0.01568_Nm / 1.0_A);
   constexpr auto kVMinion = (50.75_rpm).convert<units::turns_per_second>() / 1.0_V;
@@ -67,7 +68,7 @@ namespace DriveConstants {
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
   // will throw off kMaxDriveSpeed and kMaxTurnRate, as well as drive values.
-  inline constexpr units::meter_t kDriveDistancePerRotation = 1.0_m / 18.48;
+  inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation = 54.01_mm / units::turn_t{1};
 
   // SDS Mk3 Standard (or Fast) Max Free Speed: 12.1 (or 14.4) feet/second;
   // Review your motor and swerve module configuration for nominal free speed

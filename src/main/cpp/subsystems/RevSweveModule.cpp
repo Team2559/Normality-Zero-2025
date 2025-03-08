@@ -104,16 +104,16 @@ const frc::SwerveModulePosition RevSwerveModule::GetPosition() {
   return {units::length::meter_t{driveEncoder.GetPosition()}, GetSteerPosition()};
 }
 
-void RevSwerveModule::SetDesiredState(const frc::SwerveModuleState &state) {
+void RevSwerveModule::SetDesiredState(frc::SwerveModuleState &state) {
   auto currentAngle = GetSteerPosition();
   // Allow modules to flip their "positive" direction when rapidly changing requested directions
-  auto optimizedState = frc::SwerveModuleState::Optimize(state, currentAngle);
+  state.Optimize(state, currentAngle);
 
   // Reduce speed of misoriented modules
-  optimizedState.speed *= (optimizedState.angle - currentAngle).Cos();
+  state.speed *= (state.angle - currentAngle).Cos();
 
-  SetSteerPosition(optimizedState.angle.Radians());
-  SetDriveVelocity(optimizedState.speed);
+  SetSteerPosition(state.angle.Radians());
+  SetDriveVelocity(state.speed);
 }
 
 void RevSwerveModule::Stop() {

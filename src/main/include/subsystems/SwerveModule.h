@@ -34,6 +34,6 @@ class SwerveModule {
   // Combined swerve module functions
   virtual const frc::SwerveModuleState GetState() = 0;
   virtual const frc::SwerveModulePosition GetPosition() = 0;
-  virtual void SetDesiredState(const frc::SwerveModuleState &state) = 0;
+  virtual void SetDesiredState(frc::SwerveModuleState &state) = 0;
   virtual void Stop() = 0;
 };

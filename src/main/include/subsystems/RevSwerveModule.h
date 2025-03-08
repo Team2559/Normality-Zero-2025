@@ -28,7 +28,7 @@ class RevSwerveModule: public SwerveModule {
 
   const frc::SwerveModuleState GetState() override;
   const frc::SwerveModulePosition GetPosition() override;
-  void SetDesiredState(const frc::SwerveModuleState &state) override;
+  void SetDesiredState(frc::SwerveModuleState &state) override;
   void Stop() override;
 
  private:
