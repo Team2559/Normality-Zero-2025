@@ -87,4 +87,16 @@ class DriveSubsystem : public frc2::SubsystemBase {
 
   // Pose estimator combines odometry with vision readings to yield an accurate robot pose; 4 specifies the number of modules.
   std::unique_ptr<frc::SwerveDrivePoseEstimator<4>> m_poseEstimator;
+
+  nt::GenericEntry *nt_xPosition;
+  nt::GenericEntry *nt_xSetpoint;
+  nt::GenericEntry *nt_xOutput;
+
+  nt::GenericEntry *nt_yPosition;
+  nt::GenericEntry *nt_ySetpoint;
+  nt::GenericEntry *nt_yOutput;
+
+  nt::GenericEntry *nt_rPosition;
+  nt::GenericEntry *nt_rSetpoint;
+  nt::GenericEntry *nt_rOutput;
 };

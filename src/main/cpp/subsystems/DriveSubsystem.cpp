@@ -1,4 +1,5 @@
 #include <frc/smartdashboard/SmartDashboard.h>
+#include <frc/shuffleboard/Shuffleboard.h>
 
 #include "Constants.h"
 #include "subsystems/DriveSubsystem.h"
@@ -17,6 +18,23 @@ DriveSubsystem::DriveSubsystem() :
 
   // TODO: Add Limelight init, also get initial pose from LL if available?
 
+  frc::ShuffleboardTab &tab = frc::Shuffleboard::GetTab("Drive");
+
+  frc::ShuffleboardLayout &xLayout = tab.GetLayout("X", frc::BuiltInLayouts::kList);
+  nt_xPosition = xLayout.Add("Position [m]", initialPose.X().value()).GetEntry();
+  nt_xSetpoint = xLayout.Add("Setpoint [m]", 0.0).GetEntry();
+  nt_xOutput = xLayout.Add("Output [mps]", 0.0).GetEntry();
+
+  frc::ShuffleboardLayout &yLayout = tab.GetLayout("Y", frc::BuiltInLayouts::kList);
+  nt_yPosition = yLayout.Add("Position [m]", initialPose.Y().value()).GetEntry();
+  nt_ySetpoint = yLayout.Add("Setpoint [m]", 0.0).GetEntry();
+  nt_yOutput = yLayout.Add("Output [mps]", 0.0).GetEntry();
+
+  frc::ShuffleboardLayout &rLayout = tab.GetLayout("R", frc::BuiltInLayouts::kList);
+  nt_rPosition = rLayout.Add("Orientation [rad]", initialPose.Rotation().Radians().value()).GetEntry();
+  nt_rSetpoint = rLayout.Add("Setpoint [rad]", 0.0).GetEntry();
+  nt_rOutput = rLayout.Add("Output [radps]", 0.0).GetEntry();
+
   m_poseEstimator = std::make_unique<frc::SwerveDrivePoseEstimator<4>>(
     kDriveKinematics, m_ahrs->GetRotation2d(), GetModulePositions(), initialPose
   );
@@ -32,9 +50,13 @@ void DriveSubsystem::ResetDrive() {
 void DriveSubsystem::Periodic() {
   frc::Rotation2d heading = m_ahrs->GetRotation2d();
 
-  m_poseEstimator->Update(heading, GetModulePositions());
+  frc::Pose2d pose = m_poseEstimator->Update(heading, GetModulePositions());
 
   // TODO: Add Limelight update?
+
+  nt_xPosition->SetDouble(pose.X().value());
+  nt_yPosition->SetDouble(pose.Y().value());
+  nt_rPosition->SetDouble(pose.Rotation().Radians().value());
 
   frc::SmartDashboard::PutNumber("Front left steer", frontLeftModule->GetSteerPosition().convert<units::deg>().value());
   frc::SmartDashboard::PutNumber("Front right steer", frontRightModule->GetSteerPosition().convert<units::deg>().value());
@@ -56,9 +78,9 @@ void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
 {
   frc::Rotation2d heading = m_ahrs->GetRotation2d();
 
-  frc::SmartDashboard::PutNumber("Drive x", xSpeed.value());
-  frc::SmartDashboard::PutNumber("Drive y", ySpeed.value());
-  frc::SmartDashboard::PutNumber("Drive θ", rot.value());
+  nt_xOutput->SetDouble(xSpeed.value());
+  nt_yOutput->SetDouble(ySpeed.value());
+  nt_rOutput->SetDouble(rot.value());
 
   SetModuleStates(kDriveKinematics.ToSwerveModuleStates(
     fieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(xSpeed, ySpeed, rot, heading)
@@ -103,7 +125,7 @@ void DriveSubsystem::SetModuleStates(std::array<frc::SwerveModuleState, 4> desir
     frontRightModule->Stop();
     rearLeftModule->Stop();
     rearRightModule->Stop();
-    
+
     return;
   }
 
