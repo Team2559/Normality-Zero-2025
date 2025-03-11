@@ -186,11 +186,13 @@ namespace CoralTroughConstants {
 
   constexpr double kFlapServoDown = ( 25.0/280.0 );
   constexpr double kFlapServoUp = (( 203.0/280.0 ) + kFlapServoDown);
+  constexpr double kFlapServoDejam = (kFlapServoUp - 90.0/280.0);
 
   constexpr units::second_t kFlapServoLowerTime = 3_s;
 
   constexpr units::revolutions_per_minute_t kRollerBarDispenseSpeed { 60.0 };
-  constexpr units::turn_t kRollerBarStopDistance { 6.0 };
+  constexpr units::turn_t kRollerBarPrimeDistance { -0.25 };
+  constexpr units::turn_t kRollerBarStopDistance { 8.0 };
 
   namespace RollerPID {
     constexpr double kP = 0.003;
