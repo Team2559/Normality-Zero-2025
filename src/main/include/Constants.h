@@ -12,6 +12,7 @@
 #include <units/voltage.h>
 #include <units/torque.h>
 #include <units/current.h>
+#include <units/constants.h>
 
 /**
  * The Constants header provides a convenient place for teams to hold robot-wide
@@ -68,10 +69,12 @@ namespace DriveConstants {
   // Nominal Wheel Circumference (pi * Diameter): ~0.3192m;
   // 0.3192 / 5.90 => ~0.05401.
 
+  inline constexpr double kDriveGearRatio = 50.0/16.0 * 17.0/27.0 * 45.0/15.0; // approx 5.90
+
   // This should be empirically determined!  This is just an initial guess.
   // This is used for both distance and velocity control. If this is off, it
   // will throw off kMaxDriveSpeed and kMaxTurnRate, as well as drive values.
-  inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation = 54.01_mm / units::turn_t{1};
+  inline constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kDriveDistancePerRotation = 4.00_in * units::constants::pi / units::turn_t{kDriveGearRatio};
 
   // SDS Mk3 Standard (or Fast) Max Free Speed: 12.1 (or 14.4) feet/second;
   // Review your motor and swerve module configuration for nominal free speed

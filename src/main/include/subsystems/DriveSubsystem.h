@@ -59,6 +59,8 @@ class DriveSubsystem : public frc2::SubsystemBase {
   void SteerTo(units::meters_per_second_t xSpeed,
               units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
               bool fieldRelative, units::meter_t x_center, units::meter_t y_center);
+
+  void Stop();
   
   frc::Pose2d GetPose();
 

@@ -30,6 +30,7 @@ class SwerveModule {
   virtual void SetDriveVelocity(units::meters_per_second_t velocity) = 0;
   virtual void ResetDriveEncoder() = 0;
   virtual void SetDrivePercent(double percent) = 0;
+  virtual void StopDrive() = 0;
 
   // Combined swerve module functions
   virtual const frc::SwerveModuleState GetState() = 0;

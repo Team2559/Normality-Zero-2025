@@ -96,6 +96,10 @@ void RevSwerveModule::SetDrivePercent(double percent) {
   driveMotor.Set(percent);
 }
 
+void RevSwerveModule::StopDrive() {
+  driveMotor.StopMotor();
+}
+
 const frc::SwerveModuleState RevSwerveModule::GetState() {
   return {units::velocity::meters_per_second_t{driveEncoder.GetVelocity()}, GetSteerPosition()};
 }
@@ -105,9 +109,9 @@ const frc::SwerveModulePosition RevSwerveModule::GetPosition() {
 }
 
 void RevSwerveModule::SetDesiredState(frc::SwerveModuleState &state) {
-  auto currentAngle = GetSteerPosition();
+  auto currentAngle = frc::Rotation2d(GetSteerPosition());
   // Allow modules to flip their "positive" direction when rapidly changing requested directions
-  state.Optimize(state, currentAngle);
+  state.Optimize(currentAngle);
 
   // Reduce speed of misoriented modules
   state.speed *= (state.angle - currentAngle).Cos();

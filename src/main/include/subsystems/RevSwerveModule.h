@@ -25,6 +25,7 @@ class RevSwerveModule: public SwerveModule {
   void SetDriveVelocity(units::velocity::meters_per_second_t velocity);
   void ResetDriveEncoder() override;
   void SetDrivePercent(double percent) override;
+  void StopDrive() override;
 
   const frc::SwerveModuleState GetState() override;
   const frc::SwerveModulePosition GetPosition() override;
