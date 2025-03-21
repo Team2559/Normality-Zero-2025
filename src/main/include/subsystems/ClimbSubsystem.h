@@ -16,6 +16,7 @@ class ClimbSubsystem : public frc2::SubsystemBase {
   
   void Move(double power); // TODO: use speed instead
   frc2::CommandPtr Climb();
+  frc2::CommandPtr Climb(std::function<double()> powerProvider);
 
  private:
   SparkMax climbMotor;

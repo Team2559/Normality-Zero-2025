@@ -39,7 +39,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kAbsoluteEncoder)
       .Pid(ArmPID::kP, ArmPID::kI, ArmPID::kD)
       .PositionWrappingEnabled(true)
-      .PositionWrappingInputRange(0.0, 1.0);
+      .PositionWrappingInputRange(-0.25, 0.75);
 
     armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
@@ -53,13 +53,12 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .WithSupplyCurrentLimit(50.0_A)
       .WithSupplyCurrentLowerLimit(40.0_A);
     leftRollerConfig.MotorOutput
-      .WithInverted(signals::InvertedValue::Clockwise_Positive)
+      .WithInverted(kLeftRollerInverted)
       .WithNeutralMode(signals::NeutralModeValue::Brake);
 
     leftRoller.GetConfigurator().Apply(leftRollerConfig);
 
     leftRoller.SetControl(controls::StrictFollower{rightRoller.GetDeviceID()});
-    
   }
 
   {
@@ -71,7 +70,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .WithSupplyCurrentLimit(50.0_A)
       .WithSupplyCurrentLowerLimit(40.0_A);
     rightRollerConfig.MotorOutput
-      .WithInverted(signals::InvertedValue::CounterClockwise_Positive)
+      .WithInverted(kRightRollerInverted)
       .WithNeutralMode(signals::NeutralModeValue::Brake);
 
     rightRollerConfig.ExternalFeedback.WithSensorToMechanismRatio(2.0);

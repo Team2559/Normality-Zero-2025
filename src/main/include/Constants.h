@@ -4,9 +4,8 @@
 
 #pragma once
 
-#include "subsystems/ElevatorSubsystem.h"
-#include "units/time.h"
 #include <map>
+#include <units/time.h>
 #include <units/angle.h>
 #include <units/length.h>
 #include <units/angular_velocity.h>
@@ -17,6 +16,8 @@
 #include <units/constants.h>
 #include <frc/geometry/Transform3d.h>
 #include <frc/apriltag/AprilTagFieldLayout.h>
+
+#include "subsystems/ElevatorSubsystem.h"
 
 /**
  * The Constants header provides a convenient place for teams to hold robot-wide
@@ -161,12 +162,12 @@ namespace ClimbConstants {
   constexpr int kClimbMotorCanID = 9;
   constexpr int kRatchetServoPWMChannel = 0;
 
-  constexpr bool kClimbMotorInverted = true;
+  constexpr bool kClimbMotorInverted = false;
   constexpr double kClimbPower = -0.4;
   constexpr double kMaxClimbPower = 0.5;
 
-  constexpr double kRatchetEngaged = 0.4;
-  constexpr double kRatchetDisengaged = 0.2;
+  constexpr double kRatchetEngaged = 0.25;
+  constexpr double kRatchetDisengaged = 0.45;
 }
 
 namespace ElevatorConstants {

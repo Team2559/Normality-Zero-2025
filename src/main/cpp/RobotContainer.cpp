@@ -127,21 +127,9 @@ void RobotContainer::ConfigureBindings() {
   ).WithName("Lower Arm"));
 
   m_operatorController.LeftBumper().WhileTrue(m_climbSubsystem.Climb());
-  m_operatorController.LeftTrigger(0.05).WhileTrue(frc2::FunctionalCommand(
-    [this]() -> void {
-      m_climbSubsystem.DisengageRatchet();
-    },
-    [this]() -> void {
-      m_climbSubsystem.Move(m_operatorController.GetLeftTriggerAxis() * ClimbConstants::kMaxClimbPower);
-    },
-    [this](bool wasCanceled) -> void {
-      m_climbSubsystem.EngageRatchet();
-    },
-    []() -> bool {
-      return false;
-    },
-    {&m_climbSubsystem}
-  ).ToPtr());
+  m_operatorController.LeftTrigger(0.05).WhileTrue(m_climbSubsystem.Climb([this]() {
+    return m_operatorController.GetLeftTriggerAxis() * ClimbConstants::kMaxClimbPower;
+  }));
 
   m_operatorController.Back().ToggleOnTrue(frc2::RunCommand(
      [this]() -> void {
