@@ -154,6 +154,7 @@ void RobotContainer::ConfigureBindings() {
   m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Any));
   m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
   m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Coral));
+  m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
