@@ -1,13 +1,25 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
+#include <frc2/command/Commands.h>
+#include <frc2/command/FunctionalCommand.h>
 
 #include "commands/Autos.h"
 
-#include <frc2/command/Commands.h>
-
-#include "commands/ExampleCommand.h"
-
-frc2::CommandPtr autos::ExampleAuto(ExampleSubsystem* subsystem) {
-  return frc2::cmd::Sequence(subsystem->ExampleMethodCommand(), ExampleCommand(subsystem).ToPtr());
+frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem) {
+  return frc2::FunctionalCommand(
+    [&]() -> void {
+      driveSubsystem->ResetDrive();
+    },
+    [&]() -> void {
+      driveSubsystem->Drive(-0.3_mps, 0.0_mps, 0.0_rad_per_s, true);
+    },
+    [&](bool wasCancelled) -> void {
+      // TODO: Maybe make a stop function lol
+      driveSubsystem->Drive(0.0_mps, 0.0_mps, 0.0_rad_per_s, true);
+    },
+    [&]() -> bool {
+      return units::math::abs(driveSubsystem->GetPose().X()) >= 1.5_m;
+    },
+    {driveSubsystem}
+  ).AndThen(
+    coralTroughSubsystem->DispenseCoral()
+  );
 }

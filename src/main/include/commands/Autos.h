@@ -6,11 +6,15 @@
 
 #include <frc2/command/CommandPtr.h>
 
-#include "subsystems/ExampleSubsystem.h"
+#include "subsystems/DriveSubsystem.h"
+#include "subsystems/CoralTroughSubsystem.h"
+
+using namespace frc2;
 
 namespace autos {
-/**
- * Example static factory for an autonomous command.
- */
-frc2::CommandPtr ExampleAuto(ExampleSubsystem* subsystem);
-}  // namespace autos
+
+CommandPtr CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+CommandPtr LeftAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+CommandPtr RightAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+
+}
