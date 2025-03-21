@@ -139,9 +139,9 @@ void RobotContainer::ConfigureBindings() {
      {&m_elevatorSubsystem}
   ).ToPtr());
 
-  m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Any));
-  m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
-  m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Coral));
+  m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Algae));
+  m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
+  m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveTo(ElevatorPoint::Barge));
   m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
