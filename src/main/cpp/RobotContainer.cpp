@@ -90,7 +90,7 @@ void RobotContainer::ConfigureBindings() {
 
   m_driverController.Back().OnTrue(frc2::InstantCommand([this]() -> void {
     m_driveSubsystem.ResetFieldOrientation();
-  }, {&m_driveSubsystem}).ToPtr());
+  }, {&m_driveSubsystem}).IgnoringDisable(true));
 
   m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
   m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());

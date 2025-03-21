@@ -83,8 +83,8 @@ namespace DriveConstants {
   // This is an upper bound, for various reasons. It needs to be empirically
   // measured. Half of theoretical free speed is a reasonable starting value
   // (since something in the ballpark is needed here in order to to drive).
-  constexpr units::meters_per_second_t kMaxDriveSpeed = 6_V * MotorConstants::kVNeoVortex * kDriveDistancePerRotation;
-  constexpr double kSlowDrivePercent = 0.50;
+  constexpr units::meters_per_second_t kMaxDriveSpeed = 6895_rpm * kDriveDistancePerRotation;
+  constexpr double kSlowDrivePercent = 0.80;
 
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
