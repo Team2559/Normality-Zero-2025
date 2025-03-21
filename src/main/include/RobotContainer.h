@@ -4,6 +4,7 @@
 
 #pragma once
 
+#include <frc/smartdashboard/SendableChooser.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/button/CommandXboxController.h>
 #include <networktables/GenericEntry.h>
@@ -15,6 +16,7 @@
 #include "subsystems/CoralTroughSubsystem.h"
 #include "subsystems/ElevatorSubsystem.h"
 #include "subsystems/AlgaeArmSubsystem.h"
+#include "commands/Autos.h"
 
 /**
  * This class is where the bulk of the robot should be declared. Since
@@ -27,6 +29,7 @@ class RobotContainer {
  public:
   RobotContainer();
 
+  void ListAutonomousCommands();
   frc2::CommandPtr GetAutonomousCommand();
 
  private:
@@ -43,6 +46,8 @@ class RobotContainer {
 
   bool m_fieldOriented = true;
   bool m_triggerSpeedEnabled = false;
+
+  frc::SendableChooser<autos::AutoProgram> m_autoChooser;
 
   // The robot's subsystems are defined here...
   DriveSubsystem m_driveSubsystem;

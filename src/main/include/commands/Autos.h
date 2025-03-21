@@ -12,9 +12,19 @@
 using namespace frc2;
 
 namespace autos {
+  enum class AutoProgram {
+    kCenter,
+    kTeamBarge,
+    kOpponentBarge,
+  };
 
-CommandPtr CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
-CommandPtr LeftAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
-CommandPtr RightAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+  enum class Side {
+    kLeft,
+    kRight,
+  };
 
+  CommandPtr CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+  CommandPtr SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem, Side side);
+  CommandPtr LeftAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
+  CommandPtr RightAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem);
 }
