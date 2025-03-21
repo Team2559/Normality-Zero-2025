@@ -5,6 +5,7 @@
 #include "RobotContainer.h"
 #include "ButtonUtil.h"
 
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 #include <frc2/command/button/Trigger.h>
 #include <frc2/command/RunCommand.h>
@@ -43,7 +44,9 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
     })
     .GetEntry();
 
-  algaeArmRaiseSpeedEntry = frc::Shuffleboard::GetTab("Mechanisms")
+  frc::ShuffleboardTab& mechTab = frc::Shuffleboard::GetTab("Mechanisms");
+
+  algaeArmRaiseSpeedEntry = mechTab
     .Add("Algae Arm Raise Speed", 0.8)
     .WithWidget(frc::BuiltInWidgets::kNumberSlider)
     .WithProperties({
@@ -58,6 +61,9 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
       m_driveSubsystem.ResetPose(pose.value());
     }
   }).ToPtr());
+
+  // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
+  frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
 }
 
 void RobotContainer::ConfigureBindings() {
@@ -92,12 +98,32 @@ void RobotContainer::ConfigureBindings() {
   m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
 
   // TODO; use speed instead of power
-  m_operatorController.RightBumper().WhileTrue(frc2::RunCommand([this]() -> void {
-    m_algaeArmSubsystem.Rotate(algaeArmRaiseSpeedEntry->GetDouble(0.8));
-  }, {&m_algaeArmSubsystem}).ToPtr());
-  m_operatorController.RightTrigger(0.05).WhileTrue(frc2::RunCommand([this]() -> void {
-    m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis());
-  }, {&m_algaeArmSubsystem}).ToPtr());
+  m_operatorController.RightBumper().WhileTrue(frc2::FunctionalCommand(
+    []() -> void {},
+    [this]() -> void {
+      m_algaeArmSubsystem.Rotate(-algaeArmRaiseSpeedEntry->GetDouble(0.8));
+    },
+    [this](bool wasCanceled) -> void {
+      m_algaeArmSubsystem.Stop();
+    },
+    []() -> bool {
+      return false;
+    },
+    {&m_algaeArmSubsystem}
+  ).WithName("Raise Arm"));
+  m_operatorController.RightTrigger(0.05).WhileTrue(frc2::FunctionalCommand(
+    []() -> void {},
+    [this]() -> void {
+      m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis());
+    },
+    [this](bool wasCanceled) -> void {
+      m_algaeArmSubsystem.Stop();
+    },
+    []() -> bool {
+      return false;
+    },
+    {&m_algaeArmSubsystem}
+  ).WithName("Lower Arm"));
 
   m_operatorController.LeftBumper().WhileTrue(m_climbSubsystem.Climb());
   m_operatorController.LeftTrigger(0.05).WhileTrue(frc2::FunctionalCommand(
@@ -116,15 +142,15 @@ void RobotContainer::ConfigureBindings() {
     {&m_climbSubsystem}
   ).ToPtr());
 
-  // m_elevatorSubsystem.SetDefaultCommand(frc2::RunCommand(
-  //   [this]() -> void {
-  //     m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(m_operatorController.GetLeftY()));
-  //     m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(m_operatorController.GetLeftX()));
-  //   },
-  //   {&m_elevatorSubsystem}
-  // ));
+  m_elevatorSubsystem.SetDefaultCommand(frc2::RunCommand(
+    [this]() -> void {
+      m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(-m_operatorController.GetLeftY()) * 1.0);
+      m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()) * 0.8);
+    },
+    {&m_elevatorSubsystem}
+  ));
 
-  // m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
+  m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {

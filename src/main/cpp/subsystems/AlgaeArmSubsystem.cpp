@@ -5,51 +5,94 @@
 #include "Constants.h"
 #include "subsystems/AlgaeArmSubsystem.h"
 
+using namespace ctre::phoenix6;
 using namespace AlgaeArmConstants;
 
 AlgaeArmSubsystem::AlgaeArmSubsystem() :
   armMotor{kArmMotorCanID, SparkMax::MotorType::kBrushless},
-  leftRoller{kLeftRollerMotorCanID, SparkMax::MotorType::kBrushless},
-  rightRoller{kRightRollerMotorCanID, SparkMax::MotorType::kBrushless} {
-    {
-      SparkMaxConfig armConfig;
-      armConfig
-        .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
-        .SmartCurrentLimit(10.0)
-        .Inverted(kArmMotorInverted);
+  leftRoller{kLeftRollerMotorCanID},
+  rightRoller{kRightRollerMotorCanID},
+  armFeedforward{ArmPID::kS, ArmPID::kG, ArmPID::kV}
+{
+  {
+    SparkMaxConfig armConfig;
+    armConfig
+      .SetIdleMode(SparkMaxConfig::IdleMode::kBrake)
+      .SmartCurrentLimit(10.0)
+      .Inverted(kArmMotorInverted);
 
-      // TODO: Setup encoder and soft limits
+    armConfig.encoder
+      .PositionConversionFactor(kArmGearRatio)
+      .VelocityConversionFactor(kArmGearRatio * 1_s / 1_min);
 
-      armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
-    }
+    armConfig.absoluteEncoder
+      .Inverted(kArmEncoderInverted)
+      .ZeroOffset(0.5);
 
-    {
-      SparkMaxConfig leftRollerConfig;
-      leftRollerConfig
-        .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
-        .SmartCurrentLimit(20.0)
-        .Follow(rightRoller, kLeftRollerInverted != kRightRollerInverted);
+    armConfig.softLimit
+      .ForwardSoftLimitEnabled(true)
+      .ForwardSoftLimit(kArmDownLimit.value())
+      .ReverseSoftLimitEnabled(true)
+      .ReverseSoftLimit(kArmUpLimit.value());
 
-      leftRoller.Configure(leftRollerConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
-    }
+    armConfig.closedLoop
+      .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kAbsoluteEncoder)
+      .Pid(ArmPID::kP, ArmPID::kI, ArmPID::kD)
+      .PositionWrappingEnabled(true)
+      .PositionWrappingInputRange(0.0, 1.0);
 
-    {
-      SparkMaxConfig rightRollerConfig;
-      rightRollerConfig
-        .SetIdleMode(SparkMaxConfig::IdleMode::kCoast)
-        .SmartCurrentLimit(20.0)
-        .Inverted(kRightRollerInverted);
+    armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
+  }
 
-      rightRollerConfig.limitSwitch
-        .ReverseLimitSwitchType(LimitSwitchConfig::kNormallyOpen)
-        .ReverseLimitSwitchEnabled(true);
+  {
+    using namespace ctre::phoenix6::configs;
+    TalonFXSConfiguration leftRollerConfig;
+    leftRollerConfig.Commutation.WithMotorArrangement(signals::MotorArrangementValue::Minion_JST);
+    leftRollerConfig.CurrentLimits
+      .WithStatorCurrentLimit(80.0_A)
+      .WithSupplyCurrentLimit(50.0_A)
+      .WithSupplyCurrentLowerLimit(40.0_A);
+    leftRollerConfig.MotorOutput
+      .WithInverted(signals::InvertedValue::Clockwise_Positive)
+      .WithNeutralMode(signals::NeutralModeValue::Brake);
 
-      rightRoller.Configure(rightRollerConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
-    }
+    leftRoller.GetConfigurator().Apply(leftRollerConfig);
+
+    leftRoller.SetControl(controls::StrictFollower{rightRoller.GetDeviceID()});
+    
+  }
+
+  {
+    using namespace ctre::phoenix6::configs;
+    TalonFXSConfiguration rightRollerConfig;
+    rightRollerConfig.Commutation.WithMotorArrangement(signals::MotorArrangementValue::Minion_JST);
+    rightRollerConfig.CurrentLimits
+      .WithStatorCurrentLimit(80.0_A)
+      .WithSupplyCurrentLimit(50.0_A)
+      .WithSupplyCurrentLowerLimit(40.0_A);
+    rightRollerConfig.MotorOutput
+      .WithInverted(signals::InvertedValue::CounterClockwise_Positive)
+      .WithNeutralMode(signals::NeutralModeValue::Brake);
+
+    rightRollerConfig.ExternalFeedback.WithSensorToMechanismRatio(2.0);
+
+    rightRollerConfig.Slot0
+      .WithKP(RollerPID::kP)
+      .WithKI(RollerPID::kI)
+      .WithKD(RollerPID::kD)
+      .WithKS(RollerPID::kS)
+      .WithKV(RollerPID::kV);
+    
+    rightRoller.GetConfigurator().Apply(rightRollerConfig);
+  }
 }
 
 void AlgaeArmSubsystem::Rotate(double power) {
   armMotor.Set(power);
+}
+
+void AlgaeArmSubsystem::Stop() {
+  armMotor.StopMotor();
 }
 
 frc2::CommandPtr AlgaeArmSubsystem::Grab() {
@@ -57,32 +100,32 @@ frc2::CommandPtr AlgaeArmSubsystem::Grab() {
     [this]() -> void {
     },
     [this]() -> void {
-      rightRoller.Set(kRollerGrabSpeed.value());
+      rightRoller.SetControl(controls::VelocityDutyCycle{kRollerGrabSpeed});
     },
     [this](bool wasCanceled) -> void {
       rightRoller.StopMotor();
     },
     [this]() -> bool {
-      return rightRoller.GetReverseLimitSwitch().Get();
+      return !rightRoller.GetReverseLimit().GetValue().value;
     },
     {this}
-  ).WithTimeout(kRollerGrabTimeout);
+  ).WithTimeout(kRollerGrabTimeout).WithName("Grab");
 }
 
 frc2::CommandPtr AlgaeArmSubsystem::Release() {
   return frc2::FunctionalCommand(
     [this]() -> void {
-      rightRoller.GetEncoder().SetPosition(0.0);
+      rightRoller.SetPosition(units::turn_t{0.0});
     },
     [this]() -> void {
-      rightRoller.Set(kRollerReleaseSpeed.value());
+      rightRoller.SetControl(controls::VelocityDutyCycle{kRollerReleaseSpeed});
     },
     [this](bool wasCanceled) -> void {
       rightRoller.StopMotor();
     },
     [this]() -> bool {
-      return units::turn_t{rightRoller.GetEncoder().GetPosition()} >= kRollerReleaseDistance;
+      return rightRoller.GetPosition().GetValue() >= kRollerReleaseDistance;
     },
     {this}
-  ).ToPtr();
+  ).WithName("Release");
 }
