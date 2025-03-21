@@ -6,14 +6,22 @@
 #include <units/length.h>
 #include <units/velocity.h>
 
+#include "PIDTuner.h"
+
 class SwerveModule {
  public:
   // Initializer
   SwerveModule() = default;
   ~SwerveModule() = default;
 
-  // Called every loop
-  virtual void Periodic() = 0;
+  // Test Methods
+  virtual void TestInit(std::string name) = 0;
+  virtual void TestExit() = 0;
+  virtual void TestDebug() = 0;
+
+  // Live PID tuning
+  virtual void UpdateDrivePID(PIDUpdate &update) = 0;
+  virtual void UpdateSteerPID(PIDUpdate &update) = 0;
 
   // Is the swerve module in a "healthy" state?
   virtual bool GetStatus() const = 0;

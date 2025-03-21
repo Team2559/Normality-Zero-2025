@@ -13,6 +13,8 @@
 #include <units/torque.h>
 #include <units/current.h>
 #include <units/constants.h>
+#include <frc/geometry/Transform3d.h>
+#include <frc/apriltag/AprilTagFieldLayout.h>
 
 /**
  * The Constants header provides a convenient place for teams to hold robot-wide
@@ -32,8 +34,8 @@ namespace OperatorConstants {
 }
 
 namespace MotorConstants {
-  // Speed constant for a REV Neo Vortex, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 565.0_rpm / 1.0_V;
+  // Speed constant for a Neo Vortex, in turns per second per volt
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 6784_rpm / 12.0_V;
   // Speed constant for a REV Neo 550, in turns per second per volt
   constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeo550 = 917.0_rpm / 1.0_V;
   // Torque constant for a CTR Minion, in newton-meters per amp
@@ -81,13 +83,13 @@ namespace DriveConstants {
   // This is an upper bound, for various reasons. It needs to be empirically
   // measured. Half of theoretical free speed is a reasonable starting value
   // (since something in the ballpark is needed here in order to to drive).
-  constexpr units::meters_per_second_t kMaxDriveSpeed = 22.1_fps / 2.0;
+  constexpr units::meters_per_second_t kMaxDriveSpeed = 6_V * MotorConstants::kVNeoVortex * kDriveDistancePerRotation;
   constexpr double kSlowDrivePercent = 0.50;
 
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
   // before making any adjustment here.
-  const units::meter_t kDriveMetersPerSteerCircle = 2.0_m * M_PI * pow(pow(kWheelbaseLength.value(), 2.0) + pow(kWheelbaseWidth.value(), 2.0), 0.5);
+  const units::meter_t kDriveMetersPerSteerCircle = M_PI * units::math::sqrt(units::math::pow<2>(kWheelbaseLength) + units::math::pow<2>(kWheelbaseWidth));
 
   // This is the maximum rotational speed -- not of a swerve module, but of
   // the entire robot.  This is a function of the maximum drive speed and the
@@ -122,10 +124,10 @@ namespace DriveConstants {
 
   // Closed loop feedback parameters for module drive speed
   namespace DrivePID {
-    constexpr double kP = 0.000;
+    constexpr double kP = 0.2;
     constexpr double kI = 0.0;
-    constexpr double kD = 0.0;
-    constexpr double kFF = (1.0 / MotorConstants::kVNeoVortex / kDriveDistancePerRotation).value();
+    constexpr double kD = 0.002;
+    constexpr double kV = (1.0 / MotorConstants::kVNeoVortex / kDriveDistancePerRotation).value();
   }
 
   // Steer encoder units are scaled for more responsive PID feedback
@@ -141,6 +143,16 @@ namespace DriveConstants {
   }
 
   // TODO: Closed loop feedback for chassis speed and orientation
+}
+
+namespace VisionConstants {
+  // Camera network name
+  constexpr char kName[] = "OV9281";
+  // AprilTag field data; FMA events should all use the welded field, but off-season events may use the AndyMark field instead.
+  const frc::AprilTagFieldLayout kAprilTags = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
+  // Camera focal point position and orientation relative to the robot origin
+  constexpr frc::Transform3d kRobotToCam = frc::Transform3d(frc::Translation3d(0.5_m, 0_m, 0.5_m),
+                  frc::Rotation3d(0_rad, 0_rad, 0_rad));
 }
 
 namespace ClimbConstants {

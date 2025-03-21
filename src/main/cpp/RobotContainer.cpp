@@ -5,13 +5,17 @@
 #include "RobotContainer.h"
 #include "ButtonUtil.h"
 
+#include <frc/shuffleboard/Shuffleboard.h>
 #include <frc2/command/button/Trigger.h>
 #include <frc2/command/RunCommand.h>
 #include <frc2/command/InstantCommand.h>
-#include <frc/shuffleboard/Shuffleboard.h>
+#include <frc2/command/button/RobotModeTriggers.h>
 #include <cameraserver/CameraServer.h>
 
-RobotContainer::RobotContainer() {
+RobotContainer::RobotContainer() : m_visionSubsystem(
+  [this]() -> frc::Pose3d {return m_driveSubsystem.GetPose();},
+  [this](frc::Pose3d measurement, units::millisecond_t timestamp) -> void {m_driveSubsystem.UpdateVisionPose(measurement, timestamp);}
+) {
   // Initialize all of your commands and subsystems here
 
   // Stream usb camera over the network
@@ -30,7 +34,7 @@ RobotContainer::RobotContainer() {
   // Configure the button bindings
   ConfigureBindings();
 
-  fastDriveSpeedEntry = frc::Shuffleboard::GetTab("Drive")
+  nt_fastDriveSpeed = frc::Shuffleboard::GetTab("Drive")
     .Add("Max Speed", 1.0)
     .WithWidget(frc::BuiltInWidgets::kNumberSlider)
     .WithProperties({
@@ -47,6 +51,13 @@ RobotContainer::RobotContainer() {
       {"max", nt::Value::MakeDouble(1.0)}
     })
     .GetEntry();
+  
+  frc2::RobotModeTriggers::Disabled().OnFalse(frc2::InstantCommand([this]() -> void {
+    std::optional<frc::Pose3d> pose = m_visionSubsystem.SeedPose();
+    if (pose.has_value()) {
+      m_driveSubsystem.ResetPose(pose.value());
+    }
+  }).ToPtr());
 }
 
 void RobotContainer::ConfigureBindings() {
@@ -152,7 +163,7 @@ std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls(
     LeftStickX *= DriveConstants::kSlowDrivePercent;
     LeftStickY *= DriveConstants::kSlowDrivePercent;
   } else {
-    double fastDrivePercent = fastDriveSpeedEntry->GetDouble(1.0);
+    double fastDrivePercent = nt_fastDriveSpeed->GetDouble(1.0);
     LeftStickX *= fastDrivePercent;
     LeftStickY *= fastDrivePercent;
   }

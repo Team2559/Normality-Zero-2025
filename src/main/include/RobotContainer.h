@@ -9,6 +9,7 @@
 #include <networktables/GenericEntry.h>
 
 #include "Constants.h"
+#include "subsystems/VisionSubsystem.h"
 #include "subsystems/DriveSubsystem.h"
 #include "subsystems/ClimbSubsystem.h"
 #include "subsystems/CoralTroughSubsystem.h"
@@ -37,7 +38,7 @@ class RobotContainer {
     OperatorConstants::kOperatorControllerPort
   };
 
-  nt::GenericEntry* fastDriveSpeedEntry;
+  nt::GenericEntry* nt_fastDriveSpeed;
   nt::GenericEntry* algaeArmRaiseSpeedEntry;
 
   bool m_fieldOriented = true;
@@ -45,6 +46,7 @@ class RobotContainer {
 
   // The robot's subsystems are defined here...
   DriveSubsystem m_driveSubsystem;
+  VisionSubsystem m_visionSubsystem;
   ClimbSubsystem m_climbSubsystem;
   CoralTroughSubsystem m_coralTroughSubsystem;
   ElevatorSubsystem m_elevatorSubsystem;

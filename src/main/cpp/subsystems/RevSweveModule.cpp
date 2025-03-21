@@ -1,4 +1,6 @@
 #include <rev/config/SparkFlexConfig.h>
+#include <frc/shuffleboard/Shuffleboard.h>
+#include <wpi/sendable/Sendable.h>
 
 #include "subsystems/RevSwerveModule.h"
 #include "Constants.h"
@@ -24,11 +26,12 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
 
     driveConfig.encoder
       .PositionConversionFactor(kDriveDistancePerRotation.value())
-      .VelocityConversionFactor(kDriveDistancePerRotation.value());
+      .VelocityConversionFactor(kDriveDistancePerRotation.value() * (1.0_s / 1.0_min));
 
     driveConfig.closedLoop
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
-      .Pidf(DrivePID::kP, DrivePID::kI, DrivePID::kD, DrivePID::kFF);
+      .Pid(DrivePID::kP, DrivePID::kI, DrivePID::kD);
+    driveVff = DrivePID::kD;
 
     driveMotor.Configure(driveConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
   }
@@ -55,8 +58,74 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
   }
 }
 
-void RevSwerveModule::Periodic() {
-  // Do stuff to keep module running and keep odometry in sync
+void RevSwerveModule::TestInit(std::string name) {
+  frc::ShuffleboardTab &driveSetupTab = frc::Shuffleboard::GetTab("Drive Setup");
+  frc::ShuffleboardTab &steerSetupTab = frc::Shuffleboard::GetTab("Steer Setup");
+
+  nt_driveOutput = driveSetupTab.Add(name, std::array{0.0, 0.0, 0.0}).WithWidget(frc::BuiltInWidgets::kGraph).GetEntry();
+  nt_steerOutput = steerSetupTab.Add(name, std::array{0.0, 0.0, 0.0}).WithWidget(frc::BuiltInWidgets::kGraph).GetEntry();
+}
+
+void RevSwerveModule::TestExit() {
+  nt_driveOutput = {};
+  nt_steerOutput = {};
+}
+
+void RevSwerveModule::TestDebug() {
+  if (nt_driveOutput.has_value()) {
+    nt_driveOutput.value()->SetDoubleArray(std::array{1.0, 2.0, 3.0});
+  }
+}
+
+inline void BuildPIDConfig(SparkFlexConfig &config, const PIDUpdate &update) {
+  ClosedLoopSlot slot;
+  switch (update.slot) {
+    case 0:
+      slot = kSlot0;
+      break;
+    case 1:
+      slot = kSlot1;
+      break;
+    case 2:
+      slot = kSlot2;
+      break;
+    case 3:
+      slot = kSlot3;
+      break;
+    default:
+      return;
+  }
+
+  switch (update.term) {
+  case PIDUpdate::PIDTerm::kP:
+    config.closedLoop.P(update.value, slot);
+    break;
+  case PIDUpdate::PIDTerm::kI:
+    config.closedLoop.I(update.value, slot);
+    break;
+  case PIDUpdate::PIDTerm::kD:
+    config.closedLoop.D(update.value, slot);
+    break;
+  case PIDUpdate::PIDTerm::kFF:
+    config.closedLoop.VelocityFF(update.value, slot);
+    break;
+  }
+}
+
+void RevSwerveModule::UpdateDrivePID(PIDUpdate &update) {
+  if (update.term == PIDUpdate::PIDTerm::kFF) {
+    driveVff = update.value;
+    return;
+  }
+  SparkFlexConfig config;
+  BuildPIDConfig(config, update);
+  driveMotor.Configure(config, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
+}
+
+void RevSwerveModule::UpdateSteerPID(PIDUpdate &update) {
+  SparkFlexConfig config;
+  BuildPIDConfig(config, update);
+  steerMotor.Configure(config, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
 }
 
 bool RevSwerveModule::GetStatus() const {
@@ -85,7 +154,15 @@ void RevSwerveModule::StopSteer() {
 }
 
 void RevSwerveModule::SetDriveVelocity(units::velocity::meters_per_second_t velocity) {
-  driveMotor.GetClosedLoopController().SetReference(velocity.value(), SparkFlex::ControlType::kVelocity);
+  driveMotor.GetClosedLoopController().SetReference(velocity.value(), SparkFlex::ControlType::kVelocity, {}, velocity.value() * driveVff);
+
+  if (nt_driveOutput.has_value()) {
+    nt_driveOutput.value()->SetDoubleArray(std::array{
+      velocity.value(),
+      driveEncoder.GetVelocity(),
+      driveMotor.GetAppliedOutput()
+    });
+  }
 }
 
 void RevSwerveModule::ResetDriveEncoder() {
@@ -94,10 +171,26 @@ void RevSwerveModule::ResetDriveEncoder() {
 
 void RevSwerveModule::SetDrivePercent(double percent) {
   driveMotor.Set(percent);
+
+  if (nt_driveOutput.has_value()) {
+    nt_driveOutput.value()->SetDoubleArray(std::array{
+      0.0,
+      driveEncoder.GetVelocity(),
+      driveMotor.GetAppliedOutput()
+    });
+  }
 }
 
 void RevSwerveModule::StopDrive() {
   driveMotor.StopMotor();
+
+  if (nt_driveOutput.has_value()) {
+    nt_driveOutput.value()->SetDoubleArray(std::array{
+      0.0,
+      driveEncoder.GetVelocity(),
+      driveMotor.GetAppliedOutput()
+    });
+  }
 }
 
 const frc::SwerveModuleState RevSwerveModule::GetState() {
@@ -122,5 +215,5 @@ void RevSwerveModule::SetDesiredState(frc::SwerveModuleState &state) {
 
 void RevSwerveModule::Stop() {
   StopSteer();
-  SetDriveVelocity(0.0_mps);
+  StopDrive();
 }
