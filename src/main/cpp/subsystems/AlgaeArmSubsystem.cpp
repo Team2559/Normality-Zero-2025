@@ -1,3 +1,4 @@
+#include <frc/shuffleboard/Shuffleboard.h>
 #include <frc2/command/FunctionalCommand.h>
 #include <frc2/command/WaitCommand.h>
 #include <rev/config/SparkMaxConfig.h>
@@ -18,7 +19,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
     SparkMaxConfig armConfig;
     armConfig
       .SetIdleMode(SparkMaxConfig::IdleMode::kBrake)
-      .SmartCurrentLimit(10.0)
+      .SmartCurrentLimit(30.0)
       .Inverted(kArmMotorInverted);
 
     armConfig.encoder
@@ -29,11 +30,11 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .Inverted(kArmEncoderInverted)
       .ZeroOffset(0.5);
 
-    armConfig.softLimit
-      .ForwardSoftLimitEnabled(true)
-      .ForwardSoftLimit(kArmDownLimit.value())
-      .ReverseSoftLimitEnabled(true)
-      .ReverseSoftLimit(kArmUpLimit.value());
+    // armConfig.softLimit
+    //   .ForwardSoftLimitEnabled(true)
+    //   .ForwardSoftLimit(kArmDownLimit.value())
+    //   .ReverseSoftLimitEnabled(true)
+    //   .ReverseSoftLimit(kArmUpLimit.value());
 
     armConfig.closedLoop
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kAbsoluteEncoder)
@@ -43,6 +44,8 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
 
     armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
+
+  m_armTarget = units::turn_t{armMotor.GetAbsoluteEncoder().GetPosition()};
 
   {
     using namespace ctre::phoenix6::configs;
@@ -84,14 +87,28 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
     
     rightRoller.GetConfigurator().Apply(rightRollerConfig);
   }
+
+  frc::Shuffleboard::GetTab("Mechanisms").AddDouble("Algae arm target", [this]() {return m_armTarget.value();});
 }
 
-void AlgaeArmSubsystem::Rotate(double power) {
-  armMotor.Set(power);
+void AlgaeArmSubsystem::Periodic() {
+  units::second_t currentLoop = frc::Timer::GetFPGATimestamp();
+  m_loopDelta = currentLoop - m_lastLoop;
+  m_lastLoop = currentLoop;
+
+  units::volt_t feedforward = armFeedforward.Calculate(m_armTarget, m_armTargetVel);
+  armMotor.GetClosedLoopController().SetReference(m_armTarget.value(), SparkMax::ControlType::kPosition, {}, feedforward.value());
+}
+
+void AlgaeArmSubsystem::Rotate(units::turns_per_second_t speed) {
+  m_armTargetVel = speed;
+  m_armTarget += speed * m_loopDelta;
+  // Clamp arm target to be within the physical range
+  m_armTarget = units::math::min(units::math::max(m_armTarget, kArmUpLimit), kArmDownLimit);
 }
 
 void AlgaeArmSubsystem::Stop() {
-  armMotor.StopMotor();
+  m_armTargetVel = 0.0_deg_per_s;
 }
 
 frc2::CommandPtr AlgaeArmSubsystem::Grab() {

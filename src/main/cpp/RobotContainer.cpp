@@ -102,7 +102,7 @@ void RobotContainer::ConfigureBindings() {
   m_operatorController.RightBumper().WhileTrue(frc2::FunctionalCommand(
     []() -> void {},
     [this]() -> void {
-      m_algaeArmSubsystem.Rotate(-algaeArmRaiseSpeedEntry->GetDouble(0.8));
+      m_algaeArmSubsystem.Rotate(-algaeArmRaiseSpeedEntry->GetDouble(0.8) * AlgaeArmConstants::kArmSpeed);
     },
     [this](bool wasCanceled) -> void {
       m_algaeArmSubsystem.Stop();
@@ -115,7 +115,7 @@ void RobotContainer::ConfigureBindings() {
   m_operatorController.RightTrigger(0.05).WhileTrue(frc2::FunctionalCommand(
     []() -> void {},
     [this]() -> void {
-      m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis());
+      m_algaeArmSubsystem.Rotate(m_operatorController.GetRightTriggerAxis() * AlgaeArmConstants::kArmSpeed);
     },
     [this](bool wasCanceled) -> void {
       m_algaeArmSubsystem.Stop();
@@ -148,7 +148,7 @@ void RobotContainer::ConfigureBindings() {
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   // Drive 1m forwards during auto
   return frc2::RunCommand([&]() -> void {
-    m_driveSubsystem.Drive(-0.1_mps, 0.0_mps, 0.0_rad_per_s, true);
+    m_driveSubsystem.Drive(-0.5_mps, 0.0_mps, 0.0_rad_per_s, true);
   }, {&m_driveSubsystem}).Until([&]() -> bool {
     return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.5_m;
   }).AndThen(

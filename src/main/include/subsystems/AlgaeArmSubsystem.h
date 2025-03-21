@@ -13,7 +13,9 @@ class AlgaeArmSubsystem : public frc2::SubsystemBase {
  public:
   AlgaeArmSubsystem();
 
-  void Rotate(double power);
+  void Periodic() override;
+
+  void Rotate(units::turns_per_second_t speed);
   void Stop();
 
   frc2::CommandPtr Grab();
@@ -25,4 +27,9 @@ class AlgaeArmSubsystem : public frc2::SubsystemBase {
   TalonFXS rightRoller;
 
   frc::ArmFeedforward armFeedforward;
+  units::turn_t m_armTarget;
+  units::turns_per_second_t m_armTargetVel;
+
+  units::second_t m_lastLoop;
+  units::second_t m_loopDelta;
 };
