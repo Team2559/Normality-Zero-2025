@@ -4,7 +4,9 @@
 
 #pragma once
 
+#include "subsystems/ElevatorSubsystem.h"
 #include "units/time.h"
+#include <map>
 #include <units/angle.h>
 #include <units/length.h>
 #include <units/angular_velocity.h>
@@ -174,8 +176,8 @@ namespace ElevatorConstants {
   constexpr bool kLowerStageInverted = false;
   constexpr bool kUpperStageInverted = true;
 
-  constexpr units::millimeter_t kLowerStageDistancePerRotation = 24 * 3_mm;
-  constexpr units::millimeter_t kUpperStageDistancePerRotation = 24 * 3_mm;
+  constexpr units::millimeter_t kLowerStageDistancePerRotation = 24 * 3_mm * 2;
+  constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kUpperStageDistancePerRotation = 24 * 3_mm / 360_deg;
 
   namespace LowerStagePID {
     constexpr double kP = 0.0;
@@ -191,6 +193,20 @@ namespace ElevatorConstants {
     constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
     constexpr double kG = 0.0; // Gravity gain
   }
+
+  const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {
+    {ElevatorPoint::Home,      {0_m, 0_m}},
+    {ElevatorPoint::Processor, {0_m, 0.25_m}},
+    {ElevatorPoint::CoralL2,   {0.40_m, 0_m}},
+    {ElevatorPoint::AlgaeL2,   {0.40_m, 0.60_m}},
+    {ElevatorPoint::CoralL3,   {0.75_m, 0_m}},
+    {ElevatorPoint::AlgaeL3,   {0.75_m, 0.60_m}},
+    {ElevatorPoint::CoralL4,   {1.44_m, 0_m}},
+    {ElevatorPoint::Barge,     {1.44_m, 0.75_m}},
+  };
+
+  constexpr units::centimeter_t kLowerStageMovementTolerance = 1_cm;
+  constexpr units::centimeter_t kUpperStageMovementTolerance = 1_cm;
 }
 
 namespace CoralTroughConstants {

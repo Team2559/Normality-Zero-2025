@@ -4,6 +4,7 @@
 
 #include "RobotContainer.h"
 #include "ButtonUtil.h"
+#include "subsystems/ElevatorSubsystem.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
@@ -92,8 +93,8 @@ void RobotContainer::ConfigureBindings() {
     m_driveSubsystem.ResetFieldOrientation();
   }, {&m_driveSubsystem}).IgnoringDisable(true));
 
-  m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
   m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());
+  m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
   m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab());
   m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
 
@@ -142,15 +143,17 @@ void RobotContainer::ConfigureBindings() {
     {&m_climbSubsystem}
   ).ToPtr());
 
-  m_elevatorSubsystem.SetDefaultCommand(frc2::RunCommand(
-    [this]() -> void {
-      m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(-m_operatorController.GetLeftY()) * 1.0);
-      m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()) * 0.8);
-    },
-    {&m_elevatorSubsystem}
-  ));
+  m_operatorController.Back().ToggleOnTrue(frc2::RunCommand(
+     [this]() -> void {
+       m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(-m_operatorController.GetLeftY()));
+       m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()));
+     },
+     {&m_elevatorSubsystem}
+  ).ToPtr());
 
-  m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
+  m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Any));
+  m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
+  m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Coral));
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
