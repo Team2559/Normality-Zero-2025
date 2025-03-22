@@ -83,5 +83,5 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       {this}
     ).ToPtr()
-  ).WithTimeout(5.0_s);
+  ).WithTimeout(5.0_s).AndThen([]() {frc::SmartDashboard::PutString("Coral Status", "Finished command");});
 }
