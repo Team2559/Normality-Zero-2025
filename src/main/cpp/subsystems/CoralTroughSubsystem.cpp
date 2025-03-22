@@ -1,6 +1,7 @@
 #include <rev/config/SparkMaxConfig.h>
 #include <rev/SparkBase.h>
 
+#include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/FunctionalCommand.h>
 #include <units/angle.h>
 
@@ -50,6 +51,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     [this]() -> void {
       rollerBar.GetEncoder().SetPosition(0.0);
       flapServo.Set(kFlapServoDejam);
+      frc::SmartDashboard::PutString("Coral Status", "Starting prime");
     },
     [this]() -> void {
       rollerBar.GetClosedLoopController().SetReference(-kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
@@ -57,6 +59,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     [this](bool wasCancelled) -> void {
       rollerBar.StopMotor();
       flapServo.Set(kFlapServoUp);
+      frc::SmartDashboard::PutString("Coral Status", "Finishing prime");
     },
     [this]() -> bool {
       return units::turn_t{rollerBar.GetEncoder().GetPosition()} <= kRollerBarPrimeDistance;
@@ -66,12 +69,14 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     frc2::FunctionalCommand(
       [this]() -> void {
         rollerBar.GetEncoder().SetPosition(0.0);
+        frc::SmartDashboard::PutString("Coral Status", "Starting dispense");
       },
       [this]() -> void {
         rollerBar.GetClosedLoopController().SetReference(kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
       },
       [this](bool wasCancelled) -> void {
         rollerBar.StopMotor();
+        frc::SmartDashboard::PutString("Coral Status", "Finishing dispense");
       },
       [this]() -> bool {
         return units::turn_t{rollerBar.GetEncoder().GetPosition()} >= kRollerBarStopDistance;
