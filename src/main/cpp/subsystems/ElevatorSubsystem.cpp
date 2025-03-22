@@ -82,6 +82,7 @@ ElevatorSubsystem::ElevatorSubsystem() :
 
     tab.AddDouble("Lower-Stage Position", [this]() {return lowerStage.GetEncoder().GetPosition();});
     tab.AddDouble("Upper-Stage Position", [this]() {return upperStage.GetPosition().GetValue().value();});
+    tab.AddString("Current ElevatorPoint", [this]() {return kPointToPointName.at(currentElevatorPoint);});
   }
 }
 
@@ -144,6 +145,7 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
 }
 
 frc2::CommandPtr ElevatorSubsystem::Home() {
+  currentElevatorPoint = ElevatorPoint::Home;
   return HomeLowerStage().AlongWith(HomeUpperStage()).WithName("Home");
 }
 
@@ -204,6 +206,7 @@ void ElevatorSubsystem::MoveUpperStage(units::length::meter_t position) {
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
+  currentElevatorPoint = point;
   const ElevatorCoordinate pointCoordinate = kElevatorPointToElevatorCoordinate.at(point);
 
   return frc2::FunctionalCommand(

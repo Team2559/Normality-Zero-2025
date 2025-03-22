@@ -30,10 +30,23 @@ enum class ElevatorPoint {
   Barge
 };
 
+const std::map<ElevatorPoint, const char*> kPointToPointName = {
+  {ElevatorPoint::Home, "Home"},
+  {ElevatorPoint::Processor, "Processor"},
+  {ElevatorPoint::CoralL2, "CoralL2"},
+  {ElevatorPoint::AlgaeL2, "AlgaeL2"},
+  {ElevatorPoint::CoralL3, "CoralL3"},
+  {ElevatorPoint::AlgaeL3, "AlgaeL3"},
+  {ElevatorPoint::CoralL4, "CoralL4"},
+  {ElevatorPoint::Barge, "Barge"}
+};
+
 const std::map<ElevatorPoint, ElevatorPointType> kPointToPointType = {
   {ElevatorPoint::Home, ElevatorPointType::Any},
   {ElevatorPoint::Processor, ElevatorPointType::Algae},
   {ElevatorPoint::CoralL2, ElevatorPointType::Coral},
+  {ElevatorPoint::AlgaeL2, ElevatorPointType::Algae},
+  {ElevatorPoint::CoralL3, ElevatorPointType::Coral},
   {ElevatorPoint::AlgaeL3, ElevatorPointType::Algae},
   {ElevatorPoint::CoralL4, ElevatorPointType::Coral},
   {ElevatorPoint::Barge, ElevatorPointType::Algae}
