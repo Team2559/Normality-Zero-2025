@@ -78,5 +78,5 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       {this}
     ).ToPtr()
-  );
+  ).WithTimeout(5.0_s);
 }
