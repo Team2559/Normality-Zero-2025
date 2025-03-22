@@ -68,6 +68,8 @@ void DriveSubsystem::ResetDrive() {
   frontRightModule->ResetDriveEncoder();
   rearLeftModule->ResetDriveEncoder();
   rearRightModule->ResetDriveEncoder();
+
+  ResetPose(frc::Pose3d({}, GetPose().Rotation()));
 }
 
 void DriveSubsystem::Periodic() {
