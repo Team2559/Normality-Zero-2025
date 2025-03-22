@@ -1,10 +1,10 @@
 #include <frc2/command/Commands.h>
 #include <frc2/command/FunctionalCommand.h>
 
+#include "Constants.h"
 #include "commands/Autos.h"
 
-constexpr units::meters_per_second_t kDriveSpeed = 0.5_mps;
-constexpr units::degrees_per_second_t kTurnSpeed = 30_deg_per_s;
+using namespace AutoConstants;
 
 frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem) {
   return frc2::FunctionalCommand(

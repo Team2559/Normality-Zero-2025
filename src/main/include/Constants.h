@@ -285,3 +285,8 @@ namespace AlgaeArmConstants {
     constexpr double kV = (1.0 / MotorConstants::kVMinion).value();
   }
 }
+
+namespace AutoConstants {
+  constexpr units::meters_per_second_t kDriveSpeed = 0.5_mps;
+  constexpr units::degrees_per_second_t kTurnSpeed = 30_deg_per_s;
+}
