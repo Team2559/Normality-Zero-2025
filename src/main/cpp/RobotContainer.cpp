@@ -150,11 +150,21 @@ void RobotContainer::ConfigureBindings() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   // Drive 1m forwards during auto
-  return frc2::RunCommand([&]() -> void {
-    m_driveSubsystem.Drive(-0.5_mps, 0.0_mps, 0.0_rad_per_s, true);
-  }, {&m_driveSubsystem}).Until([&]() -> bool {
-    return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.5_m;
-  }).AndThen(
+  return frc2::FunctionalCommand(
+    [&]() -> void {
+      m_driveSubsystem.ResetDrive();
+    },
+    [&]() -> void {
+      m_driveSubsystem.Drive(-0.5_mps, 0.0_mps, 0.0_rad_per_s, true);
+    },
+    [&](bool wasCancelled) -> void {
+      m_driveSubsystem.Stop();
+    },
+    [&]() -> bool {
+      return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.9_m;
+    },
+    {&m_driveSubsystem}
+  ).AndThen(
     m_coralTroughSubsystem.DispenseCoral()
   );
 }
