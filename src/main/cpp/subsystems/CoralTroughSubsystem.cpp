@@ -25,6 +25,8 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
       .Pidf(RollerPID::kP, RollerPID::kI, RollerPID::kD, RollerPID::kFF);
 
+    frc::SmartDashboard::PutString("Coral Status", "Initialized");
+
     rollerBar.Configure(rollerBarConfig, SparkMax::ResetMode::kResetSafeParameters, SparkBase::PersistMode::kNoPersistParameters);
   }
 }
