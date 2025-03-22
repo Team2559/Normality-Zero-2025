@@ -27,6 +27,7 @@ frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSu
 }
 
 frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem, Side side) {
+  frc::Rotation2d initialRotation;
   return frc2::FunctionalCommand(
     [&]() -> void {
       driveSubsystem->ResetDrive();
@@ -44,6 +45,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
   ).AndThen(
     frc2::FunctionalCommand(
       [&]() -> void {
+        initialRotation = driveSubsystem->GetPose().ToPose2d().Rotation();
       },
       [&]() -> void {
         units::degrees_per_second_t turnSpeed;
@@ -61,7 +63,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
         driveSubsystem->Stop();
       },
       [&]() -> bool {
-        return units::math::abs(driveSubsystem->GetPose().ToPose2d().Rotation().Degrees()) >= 60_deg;
+        return units::math::abs((initialRotation - driveSubsystem->GetPose().ToPose2d().Rotation()).Degrees()) >= 60_deg;
       },
       {driveSubsystem}
     ).ToPtr()
