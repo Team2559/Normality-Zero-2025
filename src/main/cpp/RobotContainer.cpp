@@ -67,6 +67,7 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
 
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
+  frc::SmartDashboard::PutData("Elevator Subsystem", &m_elevatorSubsystem);
 }
 
 void RobotContainer::ConfigureBindings() {
@@ -95,7 +96,9 @@ void RobotContainer::ConfigureBindings() {
     m_driveSubsystem.ResetFieldOrientation();
   }, {&m_driveSubsystem}).IgnoringDisable(true));
 
-  m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());
+  m_driverController.RightBumper().ToggleOnTrue(m_algaeArmSubsystem.Release());
+
+  // m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());
   m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
   m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab());
   m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
@@ -139,11 +142,11 @@ void RobotContainer::ConfigureBindings() {
        m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()));
      },
      {&m_elevatorSubsystem}
-  ).ToPtr());
+  ).WithName("Manual Elevator"));
 
-  m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Any));
-  m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
-  m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Coral));
+  m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Algae));
+  m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
+  m_operatorController.POVRight().OnTrue(m_elevatorSubsystem.MoveTo(ElevatorPoint::Barge));
   m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
