@@ -27,6 +27,8 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .VelocityConversionFactor(kArmGearRatio * 1_s / 1_min);
 
     armConfig.absoluteEncoder
+      .PositionConversionFactor(1.0)
+      .VelocityConversionFactor(1.0)
       .Inverted(kArmEncoderInverted)
       .ZeroOffset(0.5);
 
@@ -88,7 +90,10 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
     rightRoller.GetConfigurator().Apply(rightRollerConfig);
   }
 
-  frc::Shuffleboard::GetTab("Mechanisms").AddDouble("Algae arm target", [this]() {return m_armTarget.value();});
+  frc::ShuffleboardTab &mechanismsTab = frc::Shuffleboard::GetTab("Mechanisms");
+
+  mechanismsTab.AddDouble("Algae arm target", [this]() {return m_armTarget.value();});
+  mechanismsTab.AddDouble("Algae arm sensor", [this]() {return armMotor.GetAbsoluteEncoder().GetPosition();});
 }
 
 void AlgaeArmSubsystem::Periodic() {
