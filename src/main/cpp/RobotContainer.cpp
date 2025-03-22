@@ -65,6 +65,7 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
 
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
+  frc::SmartDashboard::PutData("Elevator Subsystem", &m_elevatorSubsystem);
 }
 
 void RobotContainer::ConfigureBindings() {
@@ -139,7 +140,7 @@ void RobotContainer::ConfigureBindings() {
        m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()));
      },
      {&m_elevatorSubsystem}
-  ).ToPtr());
+  ).WithName("Manual Elevator"));
 
   m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Algae));
   m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));

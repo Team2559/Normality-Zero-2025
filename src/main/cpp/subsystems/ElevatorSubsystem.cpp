@@ -218,13 +218,13 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
               frc::IsNear(pointCoordinate.upperStagePosition.value(), upperStage.GetPosition().GetValue().value(), kUpperStageMovementTolerance.value()));
     },
     {this}
-  ).ToPtr();
+  ).WithName("Move To");
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveToNext(ElevatorPointType pointType) {
-  return MoveTo(GetNext(pointType));
+  return MoveTo(GetNext(pointType)).WithName("Move To Next");
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveToPrevious(ElevatorPointType pointType) {
-  return MoveTo(GetPrevious(pointType));
+  return MoveTo(GetPrevious(pointType)).WithName("Move To Previous");
 }
