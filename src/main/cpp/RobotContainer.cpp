@@ -160,6 +160,7 @@ void RobotContainer::ListAutonomousCommands() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   using namespace autos;
+  printf("Getting auto command\n");
   // Drive 1m forwards during auto
   switch (m_autoChooser.GetSelected()) {
     case AutoProgram::kCenter:

@@ -9,12 +9,14 @@ using namespace AutoConstants;
 frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem) {
   return frc2::FunctionalCommand(
     [driveSubsystem]() -> void {
+      printf("Starting center auto\n");
       driveSubsystem->ResetDrive();
     },
     [driveSubsystem]() -> void {
       driveSubsystem->Drive(-kDriveSpeed, 0.0_mps, 0.0_rad_per_s, true);
     },
     [driveSubsystem](bool wasCancelled) -> void {
+      printf("Finished auto drive\n");
       driveSubsystem->Stop();
     },
     [driveSubsystem]() -> bool {
@@ -30,6 +32,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
   std::shared_ptr<frc::Rotation2d> initialRotation;
   return frc2::FunctionalCommand(
     [driveSubsystem]() -> void {
+      printf("Starting side auto\n");
       driveSubsystem->ResetDrive();
     },
     [driveSubsystem]() -> void {
@@ -45,6 +48,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
   ).AndThen(
     frc2::FunctionalCommand(
       [driveSubsystem, initialRotation]() -> void {
+        printf("Starting side auto rotation\n");
         *initialRotation = driveSubsystem->GetPose().ToPose2d().Rotation();
       },
       [driveSubsystem, side]() -> void {
@@ -60,6 +64,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
         driveSubsystem->Drive(0.0_mps, 0.0_mps, turnSpeed, true);
       },
       [driveSubsystem](bool wasCancelled) -> void {
+        printf("Finished side auto rotation\n");
         driveSubsystem->Stop();
       },
       [driveSubsystem, initialRotation]() -> bool {
@@ -76,6 +81,7 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
         driveSubsystem->Drive(-kDriveSpeed, 0.0_mps, 0.0_rad_per_s, true);
       },
       [driveSubsystem](bool wasCancelled) -> void {
+        printf("Finished side auto drive\n");
         driveSubsystem->Stop();
       },
       [driveSubsystem]() -> bool {
