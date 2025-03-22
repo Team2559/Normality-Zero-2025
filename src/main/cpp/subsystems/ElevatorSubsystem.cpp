@@ -144,7 +144,7 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
 }
 
 frc2::CommandPtr ElevatorSubsystem::Home() {
-  return HomeLowerStage().AlongWith(HomeUpperStage());
+  return HomeLowerStage().AlongWith(HomeUpperStage()).WithName("Home");
 }
 
 void ElevatorSubsystem::MoveLowerStage(double power) {
