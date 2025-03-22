@@ -273,7 +273,7 @@ namespace AlgaeArmConstants {
     constexpr double kI = 0.0;
     constexpr double kD = 1.0;
     constexpr units::volt_t kS = 0.0_V;
-    constexpr units::volt_t kG = 3.0_V;
+    constexpr units::volt_t kG = 0.0_V;
     constexpr auto kV = 1.0 / MotorConstants::kVNeo550;
   }
 
