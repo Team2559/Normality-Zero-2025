@@ -105,7 +105,7 @@ frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
       lowerStage.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
     },
     [this]() -> bool {
-      return lowerStage.GetEncoder().GetVelocity() > -1;
+      return lowerStage.GetEncoder().GetVelocity() > (-0.001_mps).value();
     },
     {this}
   ).ToPtr();
@@ -114,23 +114,26 @@ frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
 frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
   using namespace ctre::phoenix6::configs;
   using namespace ctre::phoenix6::signals;
-  // static double defaultCurrentLimit;
+  static CurrentLimitsConfigs currentLimitConfig;
+  static SoftwareLimitSwitchConfigs softLimitConfig;
   return frc2::FunctionalCommand(
     [this]() -> void {
-      // defaultCurrentLimit = upperStage;
-      TalonFXSConfiguration reducedCurrentLimit;
-      reducedCurrentLimit.CurrentLimits.WithStatorCurrentLimit(20_A);
-      reducedCurrentLimit.SoftwareLimitSwitch.WithReverseSoftLimitEnable(false);
+      upperStage.GetConfigurator().Refresh(currentLimitConfig);
+      upperStage.GetConfigurator().Refresh(softLimitConfig);
+      CurrentLimitsConfigs reducedCurrentLimit = currentLimitConfig;
+      reducedCurrentLimit.WithStatorCurrentLimit(20_A);
       upperStage.GetConfigurator().Apply(reducedCurrentLimit);
+      SoftwareLimitSwitchConfigs openBottomSoftLimit = softLimitConfig;
+      openBottomSoftLimit.WithReverseSoftLimitEnable(false);
+      upperStage.GetConfigurator().Apply(reducedCurrentLimit);
+      upperStage.GetConfigurator().Apply(openBottomSoftLimit);
     },
     [this]() -> void {
       lowerStage.Set(-0.05);
     },
     [this](bool wasCanceled) -> void {
-      TalonFXSConfiguration reducedCurrentLimit;
-      reducedCurrentLimit.CurrentLimits.WithStatorCurrentLimit(80_A);
-      reducedCurrentLimit.SoftwareLimitSwitch.WithReverseSoftLimitEnable(true);
-      upperStage.GetConfigurator().Apply(reducedCurrentLimit);
+      upperStage.GetConfigurator().Apply(currentLimitConfig);
+      upperStage.GetConfigurator().Apply(softLimitConfig);
     },
     [this]() -> bool {
       return upperStage.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
