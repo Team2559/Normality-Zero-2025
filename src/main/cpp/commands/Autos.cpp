@@ -8,16 +8,16 @@ using namespace AutoConstants;
 
 frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem) {
   return frc2::FunctionalCommand(
-    [&]() -> void {
+    [driveSubsystem]() -> void {
       driveSubsystem->ResetDrive();
     },
-    [&]() -> void {
+    [driveSubsystem]() -> void {
       driveSubsystem->Drive(-kDriveSpeed, 0.0_mps, 0.0_rad_per_s, true);
     },
-    [&](bool wasCancelled) -> void {
+    [driveSubsystem](bool wasCancelled) -> void {
       driveSubsystem->Stop();
     },
-    [&]() -> bool {
+    [driveSubsystem]() -> bool {
       return units::math::abs(driveSubsystem->GetPose().X()) >= 1.9_m;
     },
     {driveSubsystem}
@@ -27,27 +27,27 @@ frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSu
 }
 
 frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem, Side side) {
-  static frc::Rotation2d initialRotation;
+  std::shared_ptr<frc::Rotation2d> initialRotation;
   return frc2::FunctionalCommand(
-    [&]() -> void {
+    [driveSubsystem]() -> void {
       driveSubsystem->ResetDrive();
     },
-    [&]() -> void {
+    [driveSubsystem]() -> void {
       driveSubsystem->Drive(-kDriveSpeed, 0.0_mps, 0.0_rad_per_s, true);
     },
-    [&](bool wasCancelled) -> void {
+    [driveSubsystem](bool wasCancelled) -> void {
       driveSubsystem->Stop();
     },
-    [&]() -> bool {
+    [driveSubsystem]() -> bool {
       return units::math::abs(driveSubsystem->GetPose().X()) >= 1.16_m;
     },
     {driveSubsystem}
   ).AndThen(
     frc2::FunctionalCommand(
-      [&]() -> void {
-        initialRotation = driveSubsystem->GetPose().ToPose2d().Rotation();
+      [driveSubsystem, initialRotation]() -> void {
+        *initialRotation = driveSubsystem->GetPose().ToPose2d().Rotation();
       },
-      [&]() -> void {
+      [driveSubsystem, side]() -> void {
         units::degrees_per_second_t turnSpeed;
         switch (side) {
           case Side::kLeft:
@@ -59,26 +59,26 @@ frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubs
         }
         driveSubsystem->Drive(0.0_mps, 0.0_mps, turnSpeed, true);
       },
-      [&](bool wasCancelled) -> void {
+      [driveSubsystem](bool wasCancelled) -> void {
         driveSubsystem->Stop();
       },
-      [&]() -> bool {
-        return units::math::abs((initialRotation - driveSubsystem->GetPose().ToPose2d().Rotation()).Degrees()) >= 60_deg;
+      [driveSubsystem, initialRotation]() -> bool {
+        return units::math::abs((*initialRotation - driveSubsystem->GetPose().ToPose2d().Rotation()).Degrees()) >= 60_deg;
       },
       {driveSubsystem}
     ).ToPtr()
   ).AndThen(
     frc2::FunctionalCommand(
-      [&]() -> void {
+      [driveSubsystem]() -> void {
         driveSubsystem->ResetDrive();
       },
-      [&]() -> void {
+      [driveSubsystem]() -> void {
         driveSubsystem->Drive(-kDriveSpeed, 0.0_mps, 0.0_rad_per_s, true);
       },
-      [&](bool wasCancelled) -> void {
+      [driveSubsystem](bool wasCancelled) -> void {
         driveSubsystem->Stop();
       },
-      [&]() -> bool {
+      [driveSubsystem]() -> bool {
         frc::Pose3d pose = driveSubsystem->GetPose();
         // Compare in square units to avoid expensive sqrt operation
         return units::math::pow<2>(pose.X()) + units::math::pow<2>(pose.Y()) >= units::math::pow<2>(1.6_m);
