@@ -27,7 +27,7 @@ frc2::CommandPtr autos::CenterAuto(DriveSubsystem* driveSubsystem, CoralTroughSu
 }
 
 frc2::CommandPtr autos::SideAuto(DriveSubsystem* driveSubsystem, CoralTroughSubsystem* coralTroughSubsystem, Side side) {
-  frc::Rotation2d initialRotation;
+  static frc::Rotation2d initialRotation;
   return frc2::FunctionalCommand(
     [&]() -> void {
       driveSubsystem->ResetDrive();
