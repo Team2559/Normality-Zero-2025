@@ -155,7 +155,7 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
       m_driveSubsystem.ResetDrive();
     },
     [&]() -> void {
-      m_driveSubsystem.Drive(-0.5_mps, 0.0_mps, 0.0_rad_per_s, true);
+      m_driveSubsystem.Drive(-1.0_mps, 0.0_mps, 0.0_rad_per_s, true);
     },
     [&](bool wasCancelled) -> void {
       m_driveSubsystem.Stop();
