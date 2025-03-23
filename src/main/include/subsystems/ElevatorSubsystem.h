@@ -84,6 +84,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   ElevatorPoint GetPrevious(ElevatorPointType pointType);
 
   frc2::CommandPtr MoveTo(ElevatorPoint point);
+  frc2::CommandPtr MoveTo(std::function<ElevatorPoint ()> pointProvider);
   frc2::CommandPtr MoveToNext(ElevatorPointType pointType);
   frc2::CommandPtr MoveToPrevious(ElevatorPointType pointType);
 

@@ -233,10 +233,33 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
   ).WithName("Move To");
 }
 
+frc2::CommandPtr ElevatorSubsystem::MoveTo(std::function<ElevatorPoint()> pointProvider) {
+  std::shared_ptr<ElevatorCoordinate> pointCoordinate;
+
+  return frc2::FunctionalCommand(
+    [pointProvider, pointCoordinate]() -> void {
+      *pointCoordinate = kElevatorPointToElevatorCoordinate.at(pointProvider());
+    },
+    [this, pointCoordinate]() -> void {
+      MoveLowerStage(pointCoordinate->lowerStagePosition);
+      MoveUpperStage(pointCoordinate->upperStagePosition);
+    },
+    [this](bool wasCancelled) -> void {
+      lowerStage.StopMotor();
+      upperStage.StopMotor();
+    },
+    [this, pointCoordinate]() -> bool {
+      return (frc::IsNear(pointCoordinate->lowerStagePosition.value(), lowerStage.GetEncoder().GetPosition(), kLowerStageMovementTolerance.value()) &&
+              frc::IsNear(pointCoordinate->upperStagePosition.value(), upperStage.GetPosition().GetValue().value(), kUpperStageMovementTolerance.value()));
+    },
+    {this}
+  ).WithName("Move To (provider)");
+}
+
 frc2::CommandPtr ElevatorSubsystem::MoveToNext(ElevatorPointType pointType) {
-  return MoveTo(GetNext(pointType)).WithName("Move To Next");
+  return MoveTo([this, pointType]() {return GetNext(pointType);}).WithName("Move To Next");
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveToPrevious(ElevatorPointType pointType) {
-  return MoveTo(GetPrevious(pointType)).WithName("Move To Previous");
+  return MoveTo([this, pointType]() {return GetPrevious(pointType);}).WithName("Move To Previous");
 }
