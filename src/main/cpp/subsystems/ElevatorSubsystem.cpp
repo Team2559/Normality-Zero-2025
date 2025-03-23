@@ -40,7 +40,7 @@ ElevatorSubsystem::ElevatorSubsystem() :
       .VelocityConversionFactor(kLowerStageDistancePerRotation.value() / 60.0);
 
     lowerStageConfig.softLimit
-      .ForwardSoftLimit(760.0) // mm
+      .ForwardSoftLimit(1440.0) // mm
       .ReverseSoftLimit(0.0) // mm
       .ForwardSoftLimitEnabled(true)
       .ReverseSoftLimitEnabled(true);
