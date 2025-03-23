@@ -208,8 +208,8 @@ namespace ElevatorConstants {
 
   constexpr units::second_t kMinHomeTime = 0.5_s;
   
-  constexpr units::centimeter_t kLowerStageMovementTolerance = 1_cm;
-  constexpr units::centimeter_t kUpperStageMovementTolerance = 1_cm;
+  constexpr units::meter_t kLowerStageMovementTolerance = 1_cm;
+  constexpr units::meter_t kUpperStageMovementTolerance = 1_cm;
 }
 
 namespace CoralTroughConstants {
