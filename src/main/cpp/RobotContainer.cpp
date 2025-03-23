@@ -9,6 +9,7 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 #include <frc2/command/button/Trigger.h>
+#include <frc2/command/WaitCommand.h>
 #include <frc2/command/RunCommand.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/button/RobotModeTriggers.h>
@@ -150,21 +151,23 @@ void RobotContainer::ConfigureBindings() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   // Drive 1m forwards during auto
-  return frc2::FunctionalCommand(
-    [&]() -> void {
-      m_driveSubsystem.ResetDrive();
-    },
-    [&]() -> void {
-      m_driveSubsystem.Drive(-1.5_mps, 0.0_mps, 0.0_rad_per_s, true);
-    },
-    [&](bool wasCancelled) -> void {
-      m_driveSubsystem.Stop();
-    },
-    [&]() -> bool {
-      return units::math::abs(m_driveSubsystem.GetPose().X()) >= 1.9_m;
-    },
-    {&m_driveSubsystem}
-  ).AndThen(
+  return frc2::WaitCommand(7_s).AndThen(
+    frc2::FunctionalCommand(
+      [&]() -> void {
+        m_driveSubsystem.ResetDrive();
+      },
+      [&]() -> void {
+        m_driveSubsystem.Drive(-2.0_mps, 0.0_mps, 0.0_rad_per_s, true);
+      },
+      [&](bool wasCancelled) -> void {
+        m_driveSubsystem.Stop();
+      },
+      [&]() -> bool {
+        return units::math::abs(m_driveSubsystem.GetPose().X()) >= 2.85_m;
+      },
+      {&m_driveSubsystem}
+    ).ToPtr()
+).AndThen(
     m_coralTroughSubsystem.DispenseCoral()
   );
 }
