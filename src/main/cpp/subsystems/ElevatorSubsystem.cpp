@@ -13,6 +13,7 @@
 
 #include <frc2/command/FunctionalCommand.h>
 #include <frc2/command/InstantCommand.h>
+#include <frc2/command/RunCommand.h>
 
 #include <rev/config/ClosedLoopConfig.h>
 #include <rev/config/SparkFlexConfig.h>
@@ -89,28 +90,40 @@ ElevatorSubsystem::ElevatorSubsystem() :
 
 frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
   static double defaultCurrentLimit;
-  return frc2::FunctionalCommand(
-    [this]() -> void {
+  return frc2::InstantCommand(
+    [this]() {
       defaultCurrentLimit = lowerStage.configAccessor.GetSmartCurrentLimit();
       SparkFlexConfig reducedCurrentLimit;
       reducedCurrentLimit.SmartCurrentLimit(20);
       reducedCurrentLimit.softLimit.ReverseSoftLimitEnabled(false);
       lowerStage.Configure(reducedCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
     },
-    [this]() -> void {
-      lowerStage.Set(-0.05);
-    },
-    [this](bool wasCanceled) -> void {
-      SparkFlexConfig regularCurrentLimit;
-      regularCurrentLimit.SmartCurrentLimit(defaultCurrentLimit);
-      regularCurrentLimit.softLimit.ReverseSoftLimitEnabled(true);
-      lowerStage.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
-    },
-    [this]() -> bool {
-      return lowerStage.GetEncoder().GetVelocity() > (-0.001_mps).value();
-    },
     {this}
-  ).ToPtr();
+  ).AndThen(
+    frc2::RunCommand(
+      [this]() {
+        lowerStage.Set(-0.05);
+      },
+      {this}
+    ).WithTimeout(kMinHomeTime)
+  ).AndThen(
+    frc2::FunctionalCommand(
+      []() {},
+      [this]() {
+        lowerStage.Set(-0.05);
+      },
+      [this](bool wasCanceled) {
+        SparkFlexConfig regularCurrentLimit;
+        regularCurrentLimit.SmartCurrentLimit(defaultCurrentLimit);
+        regularCurrentLimit.softLimit.ReverseSoftLimitEnabled(true);
+        lowerStage.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
+      },
+      [this]() -> bool {
+        return lowerStage.GetEncoder().GetVelocity() > (-0.001_mps).value();
+      },
+      {this}
+    ).ToPtr()
+  );
 }
 
 frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
@@ -118,8 +131,8 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
   using namespace ctre::phoenix6::signals;
   static CurrentLimitsConfigs currentLimitConfig;
   static SoftwareLimitSwitchConfigs softLimitConfig;
-  return frc2::FunctionalCommand(
-    [this]() -> void {
+  return frc2::InstantCommand(
+    [this]() {
       upperStage.GetConfigurator().Refresh(currentLimitConfig);
       upperStage.GetConfigurator().Refresh(softLimitConfig);
       CurrentLimitsConfigs reducedCurrentLimit = currentLimitConfig;
@@ -130,18 +143,30 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
       upperStage.GetConfigurator().Apply(reducedCurrentLimit);
       upperStage.GetConfigurator().Apply(openBottomSoftLimit);
     },
-    [this]() -> void {
-      lowerStage.Set(-0.05);
-    },
-    [this](bool wasCanceled) -> void {
-      upperStage.GetConfigurator().Apply(currentLimitConfig);
-      upperStage.GetConfigurator().Apply(softLimitConfig);
-    },
-    [this]() -> bool {
-      return upperStage.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
-    },
     {}
-  ).ToPtr();
+  ).AndThen(
+    frc2::RunCommand(
+      [this]() {
+        upperStage.Set(-0.05);
+      },
+      {}
+    ).WithTimeout(kMinHomeTime)
+  ).AndThen(
+    frc2::FunctionalCommand(
+      []() {},
+      [this]() {
+        lowerStage.Set(-0.05);
+      },
+      [this](bool wasCanceled) {
+        upperStage.GetConfigurator().Apply(currentLimitConfig);
+        upperStage.GetConfigurator().Apply(softLimitConfig);
+      },
+      [this]() -> bool {
+        return upperStage.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
+      },
+      {}
+    ).ToPtr()
+  );
   // FIXME: Split subsystems so that requirements can be correct.
 }
 
