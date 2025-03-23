@@ -205,7 +205,7 @@ ElevatorPoint ElevatorSubsystem::GetNext(ElevatorPointType pointType) {
   if (elevatorPointIterator == kPointOrder.end())
     return currentElevatorPoint;
 
-  elevatorPointIterator = std::ranges::find_if(elevatorPointIterator++, kPointOrder.end(), IsMatchingElevatorPointType(pointType));
+  elevatorPointIterator = std::ranges::find_if(++elevatorPointIterator, kPointOrder.end(), IsMatchingElevatorPointType(pointType));
 
   if (elevatorPointIterator == kPointOrder.end())
     return currentElevatorPoint;
@@ -219,7 +219,7 @@ ElevatorPoint ElevatorSubsystem::GetPrevious(ElevatorPointType pointType) {
   if (elevatorPointIterator == kPointOrder.rend())
     return currentElevatorPoint;
 
-  elevatorPointIterator = std::ranges::find_if(elevatorPointIterator++, kPointOrder.rend(), IsMatchingElevatorPointType(pointType));
+  elevatorPointIterator = std::ranges::find_if(++elevatorPointIterator, kPointOrder.rend(), IsMatchingElevatorPointType(pointType));
 
   if (elevatorPointIterator == kPointOrder.rend())
     return currentElevatorPoint;
