@@ -1,12 +1,17 @@
 #include <rev/config/SparkMaxConfig.h>
 #include <rev/SparkBase.h>
 
+#include <frc/DataLogManager.h>
+#include <frc/DriverStation.h>
+#include <wpi/DataLog.h>
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc2/command/FunctionalCommand.h>
 #include <units/angle.h>
 
 #include "subsystems/CoralTroughSubsystem.h"
 #include "Constants.h"
+
+wpi::log::StringLogEntry coralStatus;
 
 using namespace CoralTroughConstants;
 
@@ -29,6 +34,11 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
 
     rollerBar.Configure(rollerBarConfig, SparkMax::ResetMode::kResetSafeParameters, SparkBase::PersistMode::kNoPersistParameters);
   }
+
+  frc::DataLogManager::Start();
+  wpi::log::DataLog& log = frc::DataLogManager::GetLog();
+  frc::DriverStation::StartDataLog(log, false);
+  coralStatus = wpi::log::StringLogEntry(log, "/coralTrough/status");
 }
 
 frc2::CommandPtr CoralTroughSubsystem::LoadCoral() {
@@ -53,6 +63,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     [this]() -> void {
       rollerBar.GetEncoder().SetPosition(0.0);
       flapServo.Set(kFlapServoDejam);
+      coralStatus.Append("Starting prime");
       frc::SmartDashboard::PutString("Coral Status", "Starting prime");
     },
     [this]() -> void {
@@ -61,6 +72,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     [this](bool wasCancelled) -> void {
       rollerBar.StopMotor();
       flapServo.Set(kFlapServoUp);
+      coralStatus.Append("Finishing prime");
       frc::SmartDashboard::PutString("Coral Status", "Finishing prime");
     },
     [this]() -> bool {
@@ -71,6 +83,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
     frc2::FunctionalCommand(
       [this]() -> void {
         rollerBar.GetEncoder().SetPosition(0.0);
+        coralStatus.Append("Starting dispense");
         frc::SmartDashboard::PutString("Coral Status", "Starting dispense");
       },
       [this]() -> void {
@@ -78,6 +91,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       [this](bool wasCancelled) -> void {
         rollerBar.StopMotor();
+        coralStatus.Append("Finishing dispense");
         frc::SmartDashboard::PutString("Coral Status", "Finishing dispense");
       },
       [this]() -> bool {
@@ -85,5 +99,8 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       {this}
     ).ToPtr()
-  ).WithTimeout(5.0_s).AndThen([]() {frc::SmartDashboard::PutString("Coral Status", "Finished command");});
+  ).WithTimeout(5.0_s).AndThen([]() {
+    coralStatus.Append("Finished command");
+    frc::SmartDashboard::PutString("Coral Status", "Finished command");
+  });
 }
