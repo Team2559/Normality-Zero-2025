@@ -1,6 +1,7 @@
 #include <algorithm>
 
 #include <array>
+#include <cstdio>
 #include <cstdlib>
 
 #include <units/length.h>
@@ -145,8 +146,10 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
 }
 
 frc2::CommandPtr ElevatorSubsystem::Home() {
-  currentElevatorPoint = ElevatorPoint::Home;
-  return HomeLowerStage().AlongWith(HomeUpperStage()).WithName("Home");
+  return HomeLowerStage()
+          .AlongWith(HomeUpperStage())
+          .BeforeStarting([this]() -> void {currentElevatorPoint = ElevatorPoint::Home;})
+          .WithName("Home");
 }
 
 void ElevatorSubsystem::MoveLowerStage(double power) {
@@ -165,36 +168,38 @@ std::function<bool(ElevatorPoint point)> IsMatchingElevatorPointType(ElevatorPoi
   return [pointType](ElevatorPoint point) -> bool {
     const ElevatorPointType pointTypeOfPoint = kPointToPointType.at(point);
 
-    return (pointTypeOfPoint == pointType) || (pointTypeOfPoint == ElevatorPointType::Any) || (pointType == ElevatorPointType::Any);
+    return (pointTypeOfPoint == pointType) ||
+           (pointTypeOfPoint == ElevatorPointType::Any) ||
+           (pointType == ElevatorPointType::Any);
   };
 }
 
 ElevatorPoint ElevatorSubsystem::GetNext(ElevatorPointType pointType) {
-  std::array<const ElevatorPoint, 9>::iterator currentPointTypeIterator = std::ranges::find(kPointOrder.begin(), kPointOrder.end(), currentElevatorPoint);
+  std::array<const ElevatorPoint, 9>::iterator elevatorPointIterator = std::ranges::find(kPointOrder.begin(), kPointOrder.end(), currentElevatorPoint);
 
-  if (currentPointTypeIterator == kPointOrder.end())
+  if (elevatorPointIterator == kPointOrder.end())
     return currentElevatorPoint;
 
-  currentPointTypeIterator = std::ranges::find_if(currentPointTypeIterator++, kPointOrder.end(), IsMatchingElevatorPointType(pointType));
+  elevatorPointIterator = std::ranges::find_if(elevatorPointIterator++, kPointOrder.end(), IsMatchingElevatorPointType(pointType));
 
-  if (currentPointTypeIterator == kPointOrder.end())
+  if (elevatorPointIterator == kPointOrder.end())
     return currentElevatorPoint;
   else
-    return *currentPointTypeIterator;
+    return *elevatorPointIterator;
 }
 
 ElevatorPoint ElevatorSubsystem::GetPrevious(ElevatorPointType pointType) {
-  std::array<const ElevatorPoint, 9>::reverse_iterator currentPointTypeIterator = std::ranges::find(kPointOrder.rbegin(), kPointOrder.rend(), currentElevatorPoint);
+  std::array<const ElevatorPoint, 9>::reverse_iterator elevatorPointIterator = std::ranges::find(kPointOrder.rbegin(), kPointOrder.rend(), currentElevatorPoint);
 
-  if (currentPointTypeIterator == kPointOrder.rend())
+  if (elevatorPointIterator == kPointOrder.rend())
     return currentElevatorPoint;
 
-  currentPointTypeIterator = std::ranges::find_if(currentPointTypeIterator++, kPointOrder.rend(), IsMatchingElevatorPointType(pointType));
+  elevatorPointIterator = std::ranges::find_if(elevatorPointIterator++, kPointOrder.rend(), IsMatchingElevatorPointType(pointType));
 
-  if (currentPointTypeIterator == kPointOrder.rend())
+  if (elevatorPointIterator == kPointOrder.rend())
     return currentElevatorPoint;
   else
-    return *currentPointTypeIterator;
+    return *elevatorPointIterator;
 }
 
 void ElevatorSubsystem::MoveLowerStage(units::length::meter_t position) {
@@ -206,11 +211,12 @@ void ElevatorSubsystem::MoveUpperStage(units::length::meter_t position) {
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
-  currentElevatorPoint = point;
   const ElevatorCoordinate pointCoordinate = kElevatorPointToElevatorCoordinate.at(point);
 
   return frc2::FunctionalCommand(
-    []() -> void {},
+    [this, point]() -> void {
+      currentElevatorPoint = point;
+    },
     [this, pointCoordinate]() -> void {
       MoveLowerStage(pointCoordinate.lowerStagePosition);
       MoveUpperStage(pointCoordinate.upperStagePosition);
