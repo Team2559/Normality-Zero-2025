@@ -262,8 +262,9 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(std::function<ElevatorPoint()> pointP
   std::shared_ptr<ElevatorCoordinate> pointCoordinate = std::make_shared<ElevatorCoordinate>();
 
   return frc2::FunctionalCommand(
-    [pointProvider, pointCoordinate]() -> void {
-      *pointCoordinate = kElevatorPointToElevatorCoordinate.at(pointProvider());
+    [this, pointProvider, pointCoordinate]() -> void {
+      currentElevatorPoint = pointProvider();
+      *pointCoordinate = kElevatorPointToElevatorCoordinate.at(currentElevatorPoint);
     },
     [this, pointCoordinate]() -> void {
       MoveLowerStage(pointCoordinate->lowerStagePosition);
