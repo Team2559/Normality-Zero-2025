@@ -31,7 +31,7 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
     driveConfig.closedLoop
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kPrimaryEncoder)
       .Pid(DrivePID::kP, DrivePID::kI, DrivePID::kD);
-    driveVff = DrivePID::kD;
+    driveVff = DrivePID::kV;
 
     driveMotor.Configure(driveConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
   }

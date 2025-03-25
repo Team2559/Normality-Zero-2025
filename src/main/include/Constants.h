@@ -129,7 +129,7 @@ namespace DriveConstants {
   namespace DrivePID {
     constexpr double kP = 0.2;
     constexpr double kI = 0.0;
-    constexpr double kD = 0.002;
+    constexpr double kD = 0.006;
     constexpr double kV = (1.0 / MotorConstants::kVNeoVortex / kDriveDistancePerRotation).value();
   }
 
@@ -142,7 +142,6 @@ namespace DriveConstants {
     constexpr double kP = 0.8;
     constexpr double kI = 0.0;
     constexpr double kD = 0.03;
-    constexpr double kFF = 0.0;
   }
 
   // TODO: Closed loop feedback for chassis speed and orientation
@@ -223,6 +222,9 @@ namespace CoralTroughConstants {
   constexpr double kFlapServoDejam = (kFlapServoUp - 90.0/280.0);
 
   constexpr units::second_t kFlapServoLowerTime = 3_s;
+
+  constexpr units::second_t kDispenseTimeout = 1_s;
+  constexpr units::second_t kMaxDispenseTime = 5_s;
 
   constexpr units::revolutions_per_minute_t kRollerBarDispenseSpeed { 60.0 };
   constexpr units::turn_t kRollerBarPrimeDistance { -0.33 };

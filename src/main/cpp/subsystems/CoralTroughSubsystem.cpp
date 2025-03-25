@@ -46,10 +46,13 @@ frc2::CommandPtr CoralTroughSubsystem::LoadCoral() {
 }
 
 frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
+  static bool successfullyEjected = false;
+
   return frc2::FunctionalCommand(
     [this]() -> void {
       rollerBar.GetEncoder().SetPosition(0.0);
       flapServo.Set(kFlapServoDejam);
+      successfullyEjected = false;
     },
     [this]() -> void {
       rollerBar.GetClosedLoopController().SetReference(-kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
@@ -72,11 +75,14 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       [this](bool wasCancelled) -> void {
         rollerBar.StopMotor();
+        if (!wasCancelled) {
+          successfullyEjected = true;
+        }
       },
       [this]() -> bool {
         return units::turn_t{rollerBar.GetEncoder().GetPosition()} >= kRollerBarStopDistance;
       },
       {this}
-    ).ToPtr()
-  ).WithTimeout(5.0_s);
+    ).WithTimeout(kDispenseTimeout)
+  ).Repeatedly().Until([]() -> bool {return successfullyEjected;}).WithTimeout(kMaxDispenseTime);
 }
