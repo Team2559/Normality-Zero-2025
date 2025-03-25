@@ -129,7 +129,7 @@ namespace DriveConstants {
   namespace DrivePID {
     constexpr double kP = 0.2;
     constexpr double kI = 0.0;
-    constexpr double kD = 0.002;
+    constexpr double kD = 0.006;
     constexpr double kV = (1.0 / MotorConstants::kVNeoVortex / kDriveDistancePerRotation).value();
   }
 
@@ -142,7 +142,6 @@ namespace DriveConstants {
     constexpr double kP = 0.8;
     constexpr double kI = 0.0;
     constexpr double kD = 0.03;
-    constexpr double kFF = 0.0;
   }
 
   // TODO: Closed loop feedback for chassis speed and orientation
