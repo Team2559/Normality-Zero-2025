@@ -27,10 +27,8 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .VelocityConversionFactor(kArmGearRatio * 1_s / 1_min);
 
     armConfig.absoluteEncoder
-      .PositionConversionFactor(1.0)
-      .VelocityConversionFactor(1.0)
       .Inverted(kArmEncoderInverted)
-      .ZeroOffset(0.5);
+      .ZeroOffset(0.25);
 
     // armConfig.softLimit
     //   .ForwardSoftLimitEnabled(true)
@@ -42,7 +40,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kAbsoluteEncoder)
       .Pid(ArmPID::kP, ArmPID::kI, ArmPID::kD)
       .PositionWrappingEnabled(true)
-      .PositionWrappingInputRange(-0.25, 0.75);
+      .PositionWrappingInputRange(-0.5, 0.5);
 
     armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
@@ -106,8 +104,8 @@ void AlgaeArmSubsystem::Periodic() {
 }
 
 void AlgaeArmSubsystem::Rotate(units::turns_per_second_t speed) {
-  m_armTargetVel = speed;
-  m_armTarget += speed * m_loopDelta;
+  m_armTargetVel = -speed;
+  m_armTarget += -speed * m_loopDelta;
   // Clamp arm target to be within the physical range
   m_armTarget = units::math::min(units::math::max(m_armTarget, kArmUpLimit), kArmDownLimit);
 }

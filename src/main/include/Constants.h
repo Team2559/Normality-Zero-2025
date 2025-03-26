@@ -251,18 +251,18 @@ namespace AlgaeArmConstants {
   constexpr int kLeftRollerMotorCanID = 15;
   constexpr int kRightRollerMotorCanID = 16;
 
-  constexpr bool kArmMotorInverted = true;
-  constexpr bool kArmEncoderInverted = false;
+  constexpr bool kArmMotorInverted = false;
+  constexpr bool kArmEncoderInverted = true;
   constexpr bool kLeftRollerInverted = true;
   constexpr bool kRightRollerInverted = false;
 
   constexpr double kArmGearRatio = 1.0 / 64.0;
 
-  constexpr units::turn_t kArmUpLimit = 0.0_deg;
-  constexpr units::turn_t kArmDownLimit = 120.0_deg;
+  constexpr units::turn_t kArmUpLimit = 90.0_deg;
+  constexpr units::turn_t kArmDownLimit = -30.0_deg;
 
-  constexpr units::turn_t kArmUpPos = 0.0_deg;
-  constexpr units::turn_t kArmDownPos = 90.0_deg;
+  constexpr units::turn_t kArmUpPos = 90.0_deg;
+  constexpr units::turn_t kArmDownPos = 0.0_deg;
   constexpr units::turns_per_second_t kArmSpeed = 60.0_deg_per_s;
 
   constexpr units::turns_per_second_t kRollerGrabSpeed { -8.0 }; // TODO: Interpreted as a power
