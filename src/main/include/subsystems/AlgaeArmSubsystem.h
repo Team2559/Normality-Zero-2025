@@ -23,6 +23,8 @@ class AlgaeArmSubsystem : public frc2::SubsystemBase {
  private:
 
   SparkMax armMotor;
+  SparkRelativeEncoder armEncoder;
+  SparkAbsoluteEncoder armAbsEncoder;
   TalonFXS leftRoller;
   TalonFXS rightRoller;
 
