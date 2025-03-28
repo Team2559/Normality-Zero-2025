@@ -1,6 +1,8 @@
 #include <frc/shuffleboard/Shuffleboard.h>
 #include <frc2/command/FunctionalCommand.h>
 #include <frc2/command/WaitCommand.h>
+#include <frc2/command/InstantCommand.h>
+#include <frc2/command/button/Trigger.h>
 #include <rev/config/SparkMaxConfig.h>
 
 #include "Constants.h"
@@ -11,6 +13,8 @@ using namespace AlgaeArmConstants;
 
 AlgaeArmSubsystem::AlgaeArmSubsystem() :
   armMotor{kArmMotorCanID, SparkMax::MotorType::kBrushless},
+  armEncoder{armMotor.GetEncoder()},
+  armAbsEncoder{armMotor.GetAbsoluteEncoder()},
   leftRoller{kLeftRollerMotorCanID},
   rightRoller{kRightRollerMotorCanID},
   armFeedforward{ArmPID::kS, ArmPID::kG, ArmPID::kV}
@@ -28,7 +32,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
 
     armConfig.absoluteEncoder
       .Inverted(kArmEncoderInverted)
-      .ZeroOffset(0.25);
+      .ZeroOffset(0.75);
 
     // armConfig.softLimit
     //   .ForwardSoftLimitEnabled(true)
@@ -45,7 +49,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
     armMotor.Configure(armConfig, SparkMax::ResetMode::kResetSafeParameters, SparkMax::PersistMode::kNoPersistParameters);
   }
 
-  m_armTarget = units::turn_t{armMotor.GetAbsoluteEncoder().GetPosition()};
+  m_armTarget = units::turn_t{armAbsEncoder.GetPosition()};
 
   {
     using namespace ctre::phoenix6::configs;
@@ -88,10 +92,30 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
     rightRoller.GetConfigurator().Apply(rightRollerConfig);
   }
 
+  auto rightRollerTrigger = frc2::Trigger([&rightLimit = rightRoller.GetReverseLimit()]() -> bool {
+    rightLimit.Refresh();
+    return rightLimit.GetValue() == signals::ReverseLimitValue::ClosedToGround;
+  });
+
+  if (rightRollerTrigger.Get()) {
+    armFeedforward.SetKg(ArmPID::kGBall);
+  }
+
+  // Increase kG to account for mass of ball while it is held
+  rightRollerTrigger.OnTrue(frc2::InstantCommand([this]() {
+    armFeedforward.SetKg(ArmPID::kGBall);
+  }).ToPtr());
+
+  rightRollerTrigger.OnFalse(frc2::InstantCommand([this]() {
+    armFeedforward.SetKg(ArmPID::kG);
+  }).ToPtr());
+
   frc::ShuffleboardTab &mechanismsTab = frc::Shuffleboard::GetTab("Mechanisms");
 
   mechanismsTab.AddDouble("Algae arm target", [this]() {return m_armTarget.value();});
-  mechanismsTab.AddDouble("Algae arm sensor", [this]() {return armMotor.GetAbsoluteEncoder().GetPosition();});
+  mechanismsTab.AddDouble("Algae arm sensor", [this]() {return armAbsEncoder.GetPosition();});
+
+  mechanismsTab.AddDouble("Algae arm kG feedforward", [this]() {return armFeedforward.GetKg().value();});
 }
 
 void AlgaeArmSubsystem::Periodic() {
@@ -107,7 +131,7 @@ void AlgaeArmSubsystem::Rotate(units::turns_per_second_t speed) {
   m_armTargetVel = -speed;
   m_armTarget += -speed * m_loopDelta;
   // Clamp arm target to be within the physical range
-  m_armTarget = units::math::min(units::math::max(m_armTarget, kArmUpLimit), kArmDownLimit);
+  m_armTarget = units::math::max(units::math::min(m_armTarget, kArmUpLimit), kArmDownLimit);
 }
 
 void AlgaeArmSubsystem::Stop() {

@@ -41,6 +41,8 @@ namespace MotorConstants {
   constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeoVortex = 6784_rpm / 12.0_V;
   // Speed constant for a REV Neo 550, in turns per second per volt
   constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVNeo550 = 917.0_rpm / 1.0_V;
+  // Torque constant for a REV Neo 550, in turns newton-meters per amp
+  constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTNeo550 = 1.0_rad / kVNeo550;
   // Torque constant for a CTR Minion, in newton-meters per amp
   constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTMinion = 0.01568_Nm / 1.0_A;
   // Speed constant for a CTR Minion, in turns per second per volt
@@ -259,23 +261,24 @@ namespace AlgaeArmConstants {
   constexpr double kArmGearRatio = 1.0 / 64.0;
 
   constexpr units::turn_t kArmUpLimit = 90.0_deg;
-  constexpr units::turn_t kArmDownLimit = -30.0_deg;
+  constexpr units::turn_t kArmDownLimit = -15.0_deg;
 
   constexpr units::turn_t kArmUpPos = 90.0_deg;
   constexpr units::turn_t kArmDownPos = 0.0_deg;
   constexpr units::turns_per_second_t kArmSpeed = 60.0_deg_per_s;
 
-  constexpr units::turns_per_second_t kRollerGrabSpeed { -8.0 }; // TODO: Interpreted as a power
+  constexpr units::turns_per_second_t kRollerGrabSpeed { -24.0 };
   constexpr units::second_t kRollerGrabTimeout = 5_s;
-  constexpr units::turns_per_second_t kRollerReleaseSpeed { 8.0 }; // TODO: Interpreted as a power
+  constexpr units::turns_per_second_t kRollerReleaseSpeed { 16.0 };
   constexpr units::turn_t kRollerReleaseDistance { 8.0 };
 
   namespace ArmPID {
-    constexpr double kP = 1.5;
-    constexpr double kI = 0.0;
+    constexpr double kP = 1.2;
+    constexpr double kI = 0.000;
     constexpr double kD = 1.0;
-    constexpr units::volt_t kS = 0.0_V;
-    constexpr units::volt_t kG = 0.0_V;
+    constexpr units::volt_t kS = 0.5_V;
+    constexpr units::volt_t kG = 0.8_V;
+    constexpr units::volt_t kGBall = 1.5_V;
     constexpr auto kV = 1.0 / MotorConstants::kVNeo550;
   }
 
