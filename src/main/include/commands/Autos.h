@@ -7,7 +7,12 @@
 
 namespace autos {
   /**
-   * Example static factory for a path-based autonomous command.
+   * Fallback auto to drive off line if loading the desired auto fails 
+   */
+  frc2::CommandPtr FallbackAuto(DriveSubsystem& driveSubsystem);
+
+  /**
+   * Auto starting in the center lane and dropping a single coral on L1
    */
   frc2::CommandPtr CenterAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
 }  // namespace autos
