@@ -127,7 +127,7 @@ void DriveSubsystem::TestExit() {
 }
 
 void DriveSubsystem::ResetFieldOrientation() {
-  m_ahrs->ZeroYaw();
+  m_poseEstimator->ResetPose(frc::Pose3d(GetPose().Translation(), frc::Rotation3d()));
 }
 
 void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
