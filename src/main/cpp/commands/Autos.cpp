@@ -5,6 +5,7 @@
 #include <frc2/command/RunCommand.h>
 
 static auto centerTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("CenterAuto");
+static auto bargeSideTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("BargeSideAuto");
 
 frc2::CommandPtr autos::FallbackAuto(DriveSubsystem& driveSubsystem) {
   return frc2::RunCommand([&]() {
@@ -19,6 +20,20 @@ frc2::CommandPtr autos::FallbackAuto(DriveSubsystem& driveSubsystem) {
 frc2::CommandPtr autos::CenterAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem) {
   if (centerTrajectory.has_value()) {
     return SwerveTrajectoryCommand(driveSubsystem, centerTrajectory.value())
+      .AndThen(
+        coralTroughSubsystem.DispenseCoral()
+      )
+      .BeforeStarting([]() {
+        printf(">>>Running trajectory auto\n");
+      });
+  } else {
+    return FallbackAuto(driveSubsystem);
+  }
+}
+
+frc2::CommandPtr autos::BargeSideAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem) {
+  if (centerTrajectory.has_value()) {
+    return SwerveTrajectoryCommand(driveSubsystem, bargeSideTrajectory.value())
       .AndThen(
         coralTroughSubsystem.DispenseCoral()
       )
