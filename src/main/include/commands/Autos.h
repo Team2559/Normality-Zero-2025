@@ -1,16 +1,18 @@
-// Copyright (c) FIRST and other WPILib contributors.
-// Open Source Software; you can modify and/or share it under the terms of
-// the WPILib BSD license file in the root directory of this project.
-
 #pragma once
 
 #include <frc2/command/CommandPtr.h>
 
-#include "subsystems/ExampleSubsystem.h"
+#include "subsystems/DriveSubsystem.h"
+#include "subsystems/CoralTroughSubsystem.h"
 
 namespace autos {
-/**
- * Example static factory for an autonomous command.
- */
-frc2::CommandPtr ExampleAuto(ExampleSubsystem* subsystem);
+  /**
+   * Fallback auto to drive off line if loading the desired auto fails 
+   */
+  frc2::CommandPtr FallbackAuto(DriveSubsystem& driveSubsystem);
+
+  /**
+   * Auto starting in the center lane and dropping a single coral on L1
+   */
+  frc2::CommandPtr CenterAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
 }  // namespace autos

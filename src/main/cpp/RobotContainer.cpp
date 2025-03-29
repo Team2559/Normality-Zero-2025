@@ -4,7 +4,7 @@
 
 #include "RobotContainer.h"
 #include "ButtonUtil.h"
-#include "subsystems/ElevatorSubsystem.h"
+#include "commands/Autos.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
@@ -150,26 +150,7 @@ void RobotContainer::ConfigureBindings() {
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  // Drive 1m forwards during auto
-  return frc2::WaitCommand(7_s).AndThen(
-    frc2::FunctionalCommand(
-      [&]() -> void {
-        m_driveSubsystem.ResetDrive();
-      },
-      [&]() -> void {
-        m_driveSubsystem.Drive(-2.0_mps, 0.0_mps, 0.0_rad_per_s, true);
-      },
-      [&](bool wasCancelled) -> void {
-        m_driveSubsystem.Stop();
-      },
-      [&]() -> bool {
-        return units::math::abs(m_driveSubsystem.GetPose().X()) >= 2.85_m;
-      },
-      {&m_driveSubsystem}
-    ).ToPtr()
-).AndThen(
-    m_coralTroughSubsystem.DispenseCoral()
-  );
+  return autos::CenterAuto(m_driveSubsystem, m_coralTroughSubsystem);
 }
 
 std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls()

@@ -16,6 +16,9 @@ DriveSubsystem::DriveSubsystem() :
   rearLeftModule{new RevSwerveModule(kRearLeftDriveMotorCanID, kRearLeftSteerMotorCanID, kRearLeftSteerOffset)},
   rearRightModule{new RevSwerveModule(kRearRightDriveMotorCanID, kRearRightSteerMotorCanID, kRearRightSteerOffset)},
   m_ahrs{new studica::AHRS(studica::AHRS::NavXComType::kMXP_SPI)},
+  m_xController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
+  m_yController{TranslationPID::kP, TranslationPID::kI, TranslationPID::kD},
+  m_rController{OrientationPID::kP, OrientationPID::kI, OrientationPID::kD},
   m_driveTuner{[this](PIDUpdate update) -> void {
     frontLeftModule->UpdateDrivePID(update);
     frontRightModule->UpdateDrivePID(update);
@@ -131,7 +134,7 @@ void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
              units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
              bool fieldRelative, units::meter_t x_center, units::meter_t y_center)
 {
-  frc::Rotation2d heading = m_ahrs->GetRotation2d();
+  frc::Rotation2d heading = GetPose().ToPose2d().Rotation();
 
   nt_xOutput->SetDouble(xSpeed.value());
   nt_yOutput->SetDouble(ySpeed.value());
@@ -144,11 +147,32 @@ void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
   ));
 }
 
+void DriveSubsystem::FollowTrajectory(const choreo::SwerveSample& sample) {
+  frc::Pose2d pose = GetPose().ToPose2d();
+
+  units::meters_per_second_t xFeedback{m_xController.Calculate(pose.X().value(), sample.x.value())};
+  units::meters_per_second_t yFeedback{m_yController.Calculate(pose.Y().value(), sample.y.value())};
+  units::radians_per_second_t rotFeedback{
+      m_rController.Calculate(pose.Rotation().Radians().value(), sample.heading.value())
+  };
+
+  nt_xSetpoint->SetDouble(sample.x.value());
+  nt_ySetpoint->SetDouble(sample.y.value());
+  nt_rSetpoint->SetDouble(sample.heading.value());
+
+  Drive(
+    sample.vx + xFeedback,
+    sample.vy + yFeedback,
+    sample.omega + rotFeedback,
+    true
+  );
+}
+
 void DriveSubsystem::SteerTo(units::meters_per_second_t xSpeed,
              units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
              bool fieldRelative, units::meter_t x_center, units::meter_t y_center)
 {
-  frc::Rotation2d heading = m_ahrs->GetRotation2d();
+  frc::Rotation2d heading = GetPose().ToPose2d().Rotation();
 
   SetModuleStates(kDriveKinematics.ToSwerveModuleStates(
     fieldRelative ? frc::ChassisSpeeds::FromFieldRelativeSpeeds(xSpeed, ySpeed, rot, heading)
@@ -158,6 +182,10 @@ void DriveSubsystem::SteerTo(units::meters_per_second_t xSpeed,
 }
 
 void DriveSubsystem::Stop() {
+  nt_xOutput->SetDouble(0.0);
+  nt_yOutput->SetDouble(0.0);
+  nt_rOutput->SetDouble(0.0);
+
   frontLeftModule->Stop();
   frontRightModule->Stop();
   rearLeftModule->Stop();
