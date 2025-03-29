@@ -46,7 +46,7 @@ ElevatorSubsystem::ElevatorSubsystem() :
       .ForwardSoftLimitEnabled(true)
       .ReverseSoftLimitEnabled(true);
 
-    lowerStageConfig.closedLoop.Pidf(LowerStagePID::kP, LowerStagePID::kI, LowerStagePID::kD, LowerStagePID::kFF);
+    lowerStageConfig.closedLoop.Pid(LowerStagePID::kP, LowerStagePID::kI, LowerStagePID::kD);
 
     lowerStage.Configure(lowerStageConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
   }

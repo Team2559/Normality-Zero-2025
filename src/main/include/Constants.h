@@ -185,7 +185,7 @@ namespace ElevatorConstants {
     constexpr double kP = 0.0;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kFF = (1 / MotorConstants::kVNeoVortex).value();
+    constexpr double kV = (1 / MotorConstants::kVNeoVortex).value();
   }
 
   namespace UpperStagePID {
