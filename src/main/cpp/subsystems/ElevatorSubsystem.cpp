@@ -69,13 +69,14 @@ ElevatorSubsystem::ElevatorSubsystem() :
       .WithForwardSoftLimitEnable(true)
       .WithReverseSoftLimitEnable(true);
 
-    // upperStageConfig.Slot0
-    //   .WithGravityType(GravityTypeValue::Elevator_Static)
-    //   .WithKP(UpperStagePID::kP)
-    //   .WithKI(UpperStagePID::kI)
-    //   .WithKD(UpperStagePID::kD)
-    //   .WithKV(UpperStagePID::kV)
-    //   .WithKG(UpperStagePID::kG);
+    upperStageConfig.Slot0
+      .WithGravityType(GravityTypeValue::Elevator_Static)
+      .WithKP(UpperStagePID::kP)
+      .WithKI(UpperStagePID::kI)
+      .WithKD(UpperStagePID::kD)
+      .WithKG(UpperStagePID::kG)
+      .WithKS(UpperStagePID::kS)
+      .WithKV(UpperStagePID::kV);
 
     upperStage.GetConfigurator().Apply(upperStageConfig);
   }
@@ -232,7 +233,7 @@ void ElevatorSubsystem::MoveLowerStage(units::length::meter_t position) {
 }
 
 void ElevatorSubsystem::MoveUpperStage(units::length::meter_t position) {
-  upperStage.SetControl(controls::PositionDutyCycle(position / kUpperStageDistancePerRotation));
+  upperStage.SetControl(controls::PositionVoltage(position / kUpperStageDistancePerRotation));
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {

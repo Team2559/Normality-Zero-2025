@@ -192,8 +192,9 @@ namespace ElevatorConstants {
     constexpr double kP = 0.0;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
+    constexpr double kS = 0.0; // Friction gain
     constexpr double kG = 0.0; // Gravity gain
+    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
   }
 
   const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {
