@@ -6,9 +6,12 @@
 
 static auto trajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("ExampleTrajectory");
 
-frc2::CommandPtr autos::ExampleAuto(DriveSubsystem& driveSubsystem) {
+frc2::CommandPtr autos::CenterAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem) {
   if (trajectory.has_value()) {
     return SwerveTrajectoryCommand(driveSubsystem, trajectory.value())
+      .AndThen(
+        coralTroughSubsystem.DispenseCoral()
+      )
       .BeforeStarting([]() {
         printf(">>>Running trajectory auto\n");
       });

@@ -150,7 +150,7 @@ void RobotContainer::ConfigureBindings() {
 }
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  return autos::ExampleAuto(m_driveSubsystem);
+  return autos::CenterAuto(m_driveSubsystem, m_coralTroughSubsystem);
 }
 
 std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls()
