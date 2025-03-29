@@ -52,8 +52,8 @@ namespace MotorConstants {
 namespace DriveConstants {
   // Drivebase geometry: distance between centers of right and left wheels on
   // robot; distance between centers of front and back wheels on robot.
-  inline constexpr units::meter_t kWheelbaseWidth = 0.7_m;
-  inline constexpr units::meter_t kWheelbaseLength = 0.7_m;
+  inline constexpr units::meter_t kWheelbaseWidth = 24.75_in;
+  inline constexpr units::meter_t kWheelbaseLength = 24.75_in;
 
   // Zero positions for the steer of the swerve modules
   inline constexpr units::degree_t kFrontLeftSteerOffset  = 17.2_deg;
@@ -146,7 +146,20 @@ namespace DriveConstants {
     constexpr double kD = 0.03;
   }
 
-  // TODO: Closed loop feedback for chassis speed and orientation
+  // Closed loop feedback for chassis translation
+  namespace TranslationPID {
+    constexpr double kP = 1.0;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.0;
+  }
+
+  // Closed loop feedback for chassis orientation
+  namespace OrientationPID {
+    constexpr double kP = 1.0;
+    constexpr double kI = 0.0;
+    constexpr double kD = 0.0;
+  }
+
 }
 
 namespace VisionConstants {

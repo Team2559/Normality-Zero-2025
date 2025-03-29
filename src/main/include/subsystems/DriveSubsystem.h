@@ -10,12 +10,14 @@
 #include <frc/kinematics/SwerveModulePosition.h>
 #include <frc/kinematics/SwerveModuleState.h>
 #include <frc/estimator/SwerveDrivePoseEstimator3d.h>
+#include <frc/controller/PIDController.h>
 #include <frc2/command/CommandPtr.h>
 #include <frc2/command/SubsystemBase.h>
 #include <units/length.h>
 #include <units/velocity.h>
 #include <units/angular_velocity.h>
 #include <networktables/GenericEntry.h>
+#include <choreo/Choreo.h>
 
 #include "Constants.h"
 #include "PIDTuner.h"
@@ -54,6 +56,7 @@ class DriveSubsystem : public frc2::SubsystemBase {
              units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
              bool fieldRelative, units::meter_t x_center, units::meter_t y_center);
 
+  void FollowTrajectory(const choreo::SwerveSample& sample);
 
   void SteerTo(units::meters_per_second_t xSpeed,
                units::meters_per_second_t ySpeed, units::radians_per_second_t rot,
@@ -100,6 +103,10 @@ class DriveSubsystem : public frc2::SubsystemBase {
 
   PIDTuner m_driveTuner;
   PIDTuner m_steerTuner;
+
+  frc::PIDController m_xController;
+  frc::PIDController m_yController;
+  frc::PIDController m_rController;
 
   nt::GenericEntry *nt_xPosition;
   nt::GenericEntry *nt_xSetpoint;

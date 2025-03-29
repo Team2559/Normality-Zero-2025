@@ -35,13 +35,13 @@ std::optional<frc::Pose3d> VisionSubsystem::SeedPose() {
 void VisionSubsystem::Periodic() {
   m_poseEstimator.SetReferencePose(m_accessor());
 
-  photon::PhotonPipelineResult camResult = m_camera->GetLatestResult();
-  if (camResult.HasTargets()) {
-    auto result = m_poseEstimator.Update(camResult);
+  // photon::PhotonPipelineResult camResult = m_camera->GetLatestResult();
+  // if (camResult.HasTargets()) {
+  //   auto result = m_poseEstimator.Update(camResult);
 
-    if (result.has_value()) {
-      // The camera successfully captured target information
-      m_updater(result.value().estimatedPose, result.value().timestamp);
-    }
-  }
+  //   if (result.has_value()) {
+  //     // The camera successfully captured target information
+  //     m_updater(result.value().estimatedPose, result.value().timestamp);
+  //   }
+  // } 
 }
