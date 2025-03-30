@@ -15,4 +15,14 @@ namespace autos {
    * Auto starting in the center lane and dropping a single coral on L1
    */
   frc2::CommandPtr CenterAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
+
+  /**
+   * Auto starting in the processor side lane (36in from the wall) and dropping a single coral on L1
+   */
+  frc2::CommandPtr ProcessorSideAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
+
+  /**
+   * Auto starting in the barge side lane (36in from wall) and dropping a single coral on L1
+   */
+  frc2::CommandPtr BargeSideAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
 }  // namespace autos
