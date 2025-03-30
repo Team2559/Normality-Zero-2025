@@ -1,7 +1,10 @@
 #pragma once
 
-#include "units/length.h"
 #include <array>
+
+#include <units/length.h>
+
+#include <frc/controller/ElevatorFeedforward.h>
 
 #include <frc2/command/SubsystemBase.h>
 #include <frc2/command/CommandPtr.h>
@@ -92,6 +95,10 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   SparkFlex lowerStage;
   TalonFXS upperStage;
   ElevatorPoint currentElevatorPoint;
+
+  frc::ElevatorFeedforward m_lowerStageFeedforward;
+
+  units::meter_t m_lowerStageTarget;
 
   void MoveLowerStage(units::length::meter_t position);
   void MoveUpperStage(units::length::meter_t position);

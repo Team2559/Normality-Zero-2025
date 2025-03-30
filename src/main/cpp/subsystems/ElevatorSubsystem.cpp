@@ -27,7 +27,8 @@ using namespace rev::spark;
 
 ElevatorSubsystem::ElevatorSubsystem() :
   lowerStage{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
-  upperStage{kUpperStageMotorCanID}
+  upperStage{kUpperStageMotorCanID},
+  m_lowerStageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV}
 {
   {
     SparkFlexConfig lowerStageConfig;
@@ -229,7 +230,10 @@ ElevatorPoint ElevatorSubsystem::GetPrevious(ElevatorPointType pointType) {
 }
 
 void ElevatorSubsystem::MoveLowerStage(units::length::meter_t position) {
-  lowerStage.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition);
+  units::meters_per_second_t m_lowerStageVelocity = (position - m_lowerStageTarget) / 20_ms;
+  m_lowerStageTarget = position;
+  units::volt_t feedforward = m_lowerStageFeedforward.Calculate(m_lowerStageVelocity);
+  lowerStage.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition, {}, feedforward.value());
 }
 
 void ElevatorSubsystem::MoveUpperStage(units::length::meter_t position) {

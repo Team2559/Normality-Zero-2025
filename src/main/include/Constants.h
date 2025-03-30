@@ -191,14 +191,16 @@ namespace ElevatorConstants {
   constexpr bool kLowerStageInverted = false;
   constexpr bool kUpperStageInverted = true;
 
-  constexpr units::millimeter_t kLowerStageDistancePerRotation = 24 * 3_mm * 2;
+  constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kLowerStageDistancePerRotation = 24 * 3_mm * 2 / 360_deg;
   constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kUpperStageDistancePerRotation = 24 * 3_mm / 360_deg;
 
   namespace LowerStagePID {
     constexpr double kP = 0.0;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kV = (1 / MotorConstants::kVNeoVortex).value();
+    constexpr units::volt_t kS = 0.0_V;
+    constexpr units::volt_t kG = 1.0_V;
+    constexpr units::unit_t<units::compound_unit<units::volts, units::inverse<units::meters_per_second>>> kV = 1 / (MotorConstants::kVNeoVortex * kLowerStageDistancePerRotation);
   }
 
   namespace UpperStagePID {
