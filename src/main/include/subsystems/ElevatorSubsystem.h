@@ -92,14 +92,40 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   frc2::CommandPtr MoveToPrevious(ElevatorPointType pointType);
 
  private:
-  SparkFlex lowerStage;
-  TalonFXS upperStage;
+  class LowerElevatorSubsystem : public frc2::SubsystemBase {
+   public:
+    LowerElevatorSubsystem();
+
+    frc2::CommandPtr Home();
+
+    void Move(double power);
+    void MoveTo(units::length::meter_t position);
+    void Stop();
+
+    units::meter_t GetPosition();
+   private:
+    SparkFlex stageMotor;
+    frc::ElevatorFeedforward m_stageFeedforward;
+    units::meter_t m_target;
+  };
+
+  class UpperElevatorSubsystem : public frc2::SubsystemBase {
+   public:
+    UpperElevatorSubsystem();
+
+    frc2::CommandPtr Home();
+
+    void Move(double power);
+    void MoveTo(units::length::meter_t position);
+    void Stop();
+
+    units::meter_t GetPosition();
+   private:
+    TalonFXS stageMotor;
+  };
+
+  class LowerElevatorSubsystem lowerStage;
+  class UpperElevatorSubsystem upperStage;
+
   ElevatorPoint currentElevatorPoint;
-
-  frc::ElevatorFeedforward m_lowerStageFeedforward;
-
-  units::meter_t m_lowerStageTarget;
-
-  void MoveLowerStage(units::length::meter_t position);
-  void MoveUpperStage(units::length::meter_t position);
 };

@@ -25,10 +25,17 @@ using namespace ElevatorConstants;
 using namespace ctre::phoenix6;
 using namespace rev::spark;
 
-ElevatorSubsystem::ElevatorSubsystem() :
-  lowerStage{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
-  upperStage{kUpperStageMotorCanID},
-  m_lowerStageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV}
+ElevatorSubsystem::ElevatorSubsystem() {
+  frc::ShuffleboardTab &tab = frc::Shuffleboard::GetTab("Mechanisms");
+
+  tab.AddDouble("Lower-Stage Position", [this]() {return lowerStage.GetPosition().value();});
+  tab.AddDouble("Upper-Stage Position", [this]() {return upperStage.GetPosition().value();});
+  tab.AddString("Current ElevatorPoint", [this]() {return kPointToPointName.at(currentElevatorPoint);});
+}
+
+ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
+  stageMotor{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
+  m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV}
 {
   {
     SparkFlexConfig lowerStageConfig;
@@ -49,8 +56,13 @@ ElevatorSubsystem::ElevatorSubsystem() :
 
     lowerStageConfig.closedLoop.Pid(LowerStagePID::kP, LowerStagePID::kI, LowerStagePID::kD);
 
-    lowerStage.Configure(lowerStageConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
+    stageMotor.Configure(lowerStageConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
   }
+}
+
+ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
+  stageMotor{kUpperStageMotorCanID}
+{
   {
     using namespace ctre::phoenix6::configs;
     using namespace ctre::phoenix6::signals;
@@ -79,32 +91,29 @@ ElevatorSubsystem::ElevatorSubsystem() :
       .WithKS(UpperStagePID::kS)
       .WithKV(UpperStagePID::kV);
 
-    upperStage.GetConfigurator().Apply(upperStageConfig);
-  }
-  {
-    frc::ShuffleboardTab &tab = frc::Shuffleboard::GetTab("Mechanisms");
-
-    tab.AddDouble("Lower-Stage Position", [this]() {return lowerStage.GetEncoder().GetPosition();});
-    tab.AddDouble("Upper-Stage Position", [this]() {return upperStage.GetPosition().GetValue().value();});
-    tab.AddString("Current ElevatorPoint", [this]() {return kPointToPointName.at(currentElevatorPoint);});
+    stageMotor.GetConfigurator().Apply(upperStageConfig);
   }
 }
 
 frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
+  return lowerStage.Home();
+}
+
+frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::Home() {
   static double defaultCurrentLimit;
   return frc2::InstantCommand(
     [this]() {
-      defaultCurrentLimit = lowerStage.configAccessor.GetSmartCurrentLimit();
+      defaultCurrentLimit = stageMotor.configAccessor.GetSmartCurrentLimit();
       SparkFlexConfig reducedCurrentLimit;
       reducedCurrentLimit.SmartCurrentLimit(20);
       reducedCurrentLimit.softLimit.ReverseSoftLimitEnabled(false);
-      lowerStage.Configure(reducedCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
+      stageMotor.Configure(reducedCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
     },
     {this}
   ).AndThen(
     frc2::RunCommand(
       [this]() {
-        lowerStage.Set(-0.05);
+        stageMotor.Set(-0.05);
       },
       {this}
     ).WithTimeout(kMinHomeTime)
@@ -112,16 +121,16 @@ frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
     frc2::FunctionalCommand(
       []() {},
       [this]() {
-        lowerStage.Set(-0.05);
+        stageMotor.Set(-0.05);
       },
       [this](bool wasCanceled) {
         SparkFlexConfig regularCurrentLimit;
         regularCurrentLimit.SmartCurrentLimit(defaultCurrentLimit);
         regularCurrentLimit.softLimit.ReverseSoftLimitEnabled(true);
-        lowerStage.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
+        stageMotor.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
       },
       [this]() -> bool {
-        return lowerStage.GetEncoder().GetVelocity() > (-0.001_mps).value();
+        return stageMotor.GetEncoder().GetVelocity() > (-0.001_mps).value();
       },
       {this}
     ).ToPtr()
@@ -129,27 +138,30 @@ frc2::CommandPtr ElevatorSubsystem::HomeLowerStage() {
 }
 
 frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
+  return upperStage.Home();
+}
+
+frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
   using namespace ctre::phoenix6::configs;
   using namespace ctre::phoenix6::signals;
   static CurrentLimitsConfigs currentLimitConfig;
   static SoftwareLimitSwitchConfigs softLimitConfig;
   return frc2::InstantCommand(
     [this]() {
-      upperStage.GetConfigurator().Refresh(currentLimitConfig);
-      upperStage.GetConfigurator().Refresh(softLimitConfig);
+      stageMotor.GetConfigurator().Refresh(currentLimitConfig);
+      stageMotor.GetConfigurator().Refresh(softLimitConfig);
       CurrentLimitsConfigs reducedCurrentLimit = currentLimitConfig;
-      reducedCurrentLimit.WithStatorCurrentLimit(20_A);
-      upperStage.GetConfigurator().Apply(reducedCurrentLimit);
+      reducedCurrentLimit.WithStatorCurrentLimit(20_A);;
       SoftwareLimitSwitchConfigs openBottomSoftLimit = softLimitConfig;
       openBottomSoftLimit.WithReverseSoftLimitEnable(false);
-      upperStage.GetConfigurator().Apply(reducedCurrentLimit);
-      upperStage.GetConfigurator().Apply(openBottomSoftLimit);
+      stageMotor.GetConfigurator().Apply(reducedCurrentLimit);
+      stageMotor.GetConfigurator().Apply(openBottomSoftLimit);
     },
     {}
   ).AndThen(
     frc2::RunCommand(
       [this]() {
-        upperStage.Set(-0.05);
+        stageMotor.Set(-0.05);
       },
       {}
     ).WithTimeout(kMinHomeTime)
@@ -157,19 +169,18 @@ frc2::CommandPtr ElevatorSubsystem::HomeUpperStage() {
     frc2::FunctionalCommand(
       []() {},
       [this]() {
-        lowerStage.Set(-0.05);
+        stageMotor.Set(-0.05);
       },
       [this](bool wasCanceled) {
-        upperStage.GetConfigurator().Apply(currentLimitConfig);
-        upperStage.GetConfigurator().Apply(softLimitConfig);
+        stageMotor.GetConfigurator().Apply(currentLimitConfig);
+        stageMotor.GetConfigurator().Apply(softLimitConfig);
       },
       [this]() -> bool {
-        return upperStage.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
+        return stageMotor.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
       },
       {}
     ).ToPtr()
   );
-  // FIXME: Split subsystems so that requirements can be correct.
 }
 
 frc2::CommandPtr ElevatorSubsystem::Home() {
@@ -180,11 +191,19 @@ frc2::CommandPtr ElevatorSubsystem::Home() {
 }
 
 void ElevatorSubsystem::MoveLowerStage(double power) {
-  lowerStage.Set(power);
+  lowerStage.Move(power);
+}
+
+void ElevatorSubsystem::LowerElevatorSubsystem::Move(double power) {
+  stageMotor.Set(power);
 }
 
 void ElevatorSubsystem::MoveUpperStage(double power) {
-  upperStage.Set(power * 0.5);
+  upperStage.Move(power * 0.5);
+}
+
+void ElevatorSubsystem::UpperElevatorSubsystem::Move(double power) {
+  stageMotor.Set(power);
 }
 
 ElevatorPoint ElevatorSubsystem::GetCurrent() {
@@ -229,15 +248,23 @@ ElevatorPoint ElevatorSubsystem::GetPrevious(ElevatorPointType pointType) {
     return *elevatorPointIterator;
 }
 
-void ElevatorSubsystem::MoveLowerStage(units::length::meter_t position) {
-  units::meters_per_second_t m_lowerStageVelocity = (position - m_lowerStageTarget) / 20_ms;
-  m_lowerStageTarget = position;
-  units::volt_t feedforward = m_lowerStageFeedforward.Calculate(m_lowerStageVelocity);
-  lowerStage.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition, {}, feedforward.value());
+void ElevatorSubsystem::LowerElevatorSubsystem::MoveTo(units::length::meter_t position) {
+  units::meters_per_second_t m_lowerStageVelocity = (position - m_target) / 20_ms;
+  m_target = position;
+  units::volt_t feedforward = m_stageFeedforward.Calculate(m_lowerStageVelocity);
+  stageMotor.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition, {}, feedforward.value());
 }
 
-void ElevatorSubsystem::MoveUpperStage(units::length::meter_t position) {
-  upperStage.SetControl(controls::PositionVoltage(position / kUpperStageDistancePerRotation));
+void ElevatorSubsystem::UpperElevatorSubsystem::MoveTo(units::length::meter_t position) {
+  stageMotor.SetControl(controls::PositionVoltage(position / kUpperStageDistancePerRotation));
+}
+
+void ElevatorSubsystem::LowerElevatorSubsystem::Stop() {
+  stageMotor.StopMotor();
+}
+
+void ElevatorSubsystem::UpperElevatorSubsystem::Stop() {
+  stageMotor.StopMotor();
 }
 
 frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
@@ -248,18 +275,18 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
       currentElevatorPoint = point;
     },
     [this, pointCoordinate]() -> void {
-      MoveLowerStage(pointCoordinate.lowerStagePosition);
-      MoveUpperStage(pointCoordinate.upperStagePosition);
+      lowerStage.MoveTo(pointCoordinate.lowerStagePosition);
+      upperStage.MoveTo(pointCoordinate.upperStagePosition);
     },
     [this](bool wasCancelled) -> void {
-      lowerStage.StopMotor();
-      upperStage.StopMotor();
+      lowerStage.Stop();
+      upperStage.Stop();
     },
     [this, pointCoordinate]() -> bool {
-      return (frc::IsNear(pointCoordinate.lowerStagePosition.value(), lowerStage.GetEncoder().GetPosition(), kLowerStageMovementTolerance.value()) &&
-              frc::IsNear(pointCoordinate.upperStagePosition.value(), upperStage.GetPosition().GetValue().value(), kUpperStageMovementTolerance.value()));
+      return (frc::IsNear(pointCoordinate.lowerStagePosition, lowerStage.GetPosition(), kLowerStageMovementTolerance) &&
+              frc::IsNear(pointCoordinate.upperStagePosition, upperStage.GetPosition(), kUpperStageMovementTolerance));
     },
-    {this}
+    {this, &lowerStage, &upperStage}
   ).WithName("Move To");
 }
 
@@ -272,18 +299,18 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(std::function<ElevatorPoint()> pointP
       *pointCoordinate = kElevatorPointToElevatorCoordinate.at(currentElevatorPoint);
     },
     [this, pointCoordinate]() -> void {
-      MoveLowerStage(pointCoordinate->lowerStagePosition);
-      MoveUpperStage(pointCoordinate->upperStagePosition);
+      lowerStage.MoveTo(pointCoordinate->lowerStagePosition);
+      upperStage.MoveTo(pointCoordinate->upperStagePosition);
     },
     [this](bool wasCancelled) -> void {
-      lowerStage.StopMotor();
-      upperStage.StopMotor();
+      lowerStage.Stop();
+      upperStage.Stop();
     },
     [this, pointCoordinate]() -> bool {
-      return (frc::IsNear(pointCoordinate->lowerStagePosition.value(), lowerStage.GetEncoder().GetPosition(), kLowerStageMovementTolerance.value()) &&
-              frc::IsNear(pointCoordinate->upperStagePosition.value(), upperStage.GetPosition().GetValue().value(), kUpperStageMovementTolerance.value()));
+      return (frc::IsNear(pointCoordinate->lowerStagePosition, lowerStage.GetPosition(), kLowerStageMovementTolerance) &&
+              frc::IsNear(pointCoordinate->upperStagePosition, upperStage.GetPosition(), kUpperStageMovementTolerance));
     },
-    {this}
+    {this, &lowerStage, &upperStage}
   ).WithName("Move To (provider)");
 }
 
@@ -293,4 +320,12 @@ frc2::CommandPtr ElevatorSubsystem::MoveToNext(ElevatorPointType pointType) {
 
 frc2::CommandPtr ElevatorSubsystem::MoveToPrevious(ElevatorPointType pointType) {
   return MoveTo([this, pointType]() {return GetPrevious(pointType);}).WithName("Move To Previous");
+}
+
+units::meter_t ElevatorSubsystem::LowerElevatorSubsystem::GetPosition() {
+  return units::meter_t{stageMotor.GetEncoder().GetPosition()};
+}
+
+units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
+  return stageMotor.GetPosition().AsSupplier()() * kUpperStageDistancePerRotation;
 }
