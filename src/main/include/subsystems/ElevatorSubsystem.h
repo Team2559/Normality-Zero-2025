@@ -105,6 +105,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
     units::meter_t GetPosition();
    private:
     SparkFlex stageMotor;
+    SparkRelativeEncoder stageEncoder;
     frc::ElevatorFeedforward m_stageFeedforward;
     units::meter_t m_target;
   };
@@ -122,6 +123,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
     units::meter_t GetPosition();
    private:
     TalonFXS stageMotor;
+    ctre::phoenix6::StatusSignal<units::angle::turn_t>& stagePosition;
   };
 
   class LowerElevatorSubsystem lowerStage;

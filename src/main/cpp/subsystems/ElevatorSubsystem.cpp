@@ -35,6 +35,7 @@ ElevatorSubsystem::ElevatorSubsystem() {
 
 ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
   stageMotor{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
+  stageEncoder{stageMotor.GetEncoder()},
   m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV}
 {
   {
@@ -61,7 +62,8 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
 }
 
 ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
-  stageMotor{kUpperStageMotorCanID}
+  stageMotor{kUpperStageMotorCanID},
+  stagePosition{stageMotor.GetPosition()}
 {
   {
     using namespace ctre::phoenix6::configs;
@@ -130,7 +132,7 @@ frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::Home() {
         stageMotor.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
       },
       [this]() -> bool {
-        return stageMotor.GetEncoder().GetVelocity() > (-0.001_mps).value();
+        return stageEncoder.GetVelocity() > (-0.001_mps).value();
       },
       {this}
     ).ToPtr()
@@ -323,9 +325,10 @@ frc2::CommandPtr ElevatorSubsystem::MoveToPrevious(ElevatorPointType pointType) 
 }
 
 units::meter_t ElevatorSubsystem::LowerElevatorSubsystem::GetPosition() {
-  return units::meter_t{stageMotor.GetEncoder().GetPosition()};
+  return units::meter_t{stageEncoder.GetPosition()};
 }
 
 units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
-  return stageMotor.GetPosition().AsSupplier()() * kUpperStageDistancePerRotation;
+  stagePosition.Refresh();
+  return stagePosition.GetValue() * kUpperStageDistancePerRotation;
 }
