@@ -22,4 +22,6 @@ class VisionSubsystem : public frc2::SubsystemBase {
 
   std::function<frc::Pose3d ()> m_accessor;
   std::function<void (frc::Pose3d, units::millisecond_t)> m_updater;
+
+  void ProcessCameraResults(std::function<void (frc::Pose3d, units::millisecond_t)> updater);
 };
