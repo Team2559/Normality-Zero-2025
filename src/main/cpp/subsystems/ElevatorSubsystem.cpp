@@ -36,7 +36,8 @@ ElevatorSubsystem::ElevatorSubsystem() {
 ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
   stageMotor{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
   stageEncoder{stageMotor.GetEncoder()},
-  m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV}
+  m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV},
+  nt_lowerStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Lower-Stage Target Position", 0.0).GetEntry()}
 {
   {
     SparkFlexConfig lowerStageConfig;
@@ -50,8 +51,8 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
       .VelocityConversionFactor(kLowerStageDistancePerRotation.value() / 60.0);
 
     lowerStageConfig.softLimit
-      .ForwardSoftLimit(1440.0) // mm
-      .ReverseSoftLimit(0.0) // mm
+      .ForwardSoftLimit(1.4) // m
+      .ReverseSoftLimit(0.0) // m
       .ForwardSoftLimitEnabled(true)
       .ReverseSoftLimitEnabled(true);
 
@@ -63,7 +64,8 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
 
 ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
   stageMotor{kUpperStageMotorCanID},
-  stagePosition{stageMotor.GetPosition()}
+  stagePosition{stageMotor.GetPosition()},
+  nt_upperStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Upper-Stage Target Position", 0.0).GetEntry()}
 {
   {
     using namespace ctre::phoenix6::configs;
@@ -79,7 +81,7 @@ ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
       .WithNeutralMode(NeutralModeValue::Brake);
 
     upperStageConfig.SoftwareLimitSwitch
-      .WithForwardSoftLimitThreshold(20_in / kUpperStageDistancePerRotation)
+      .WithForwardSoftLimitThreshold(0.6_m / kUpperStageDistancePerRotation)
       .WithReverseSoftLimitThreshold(0_deg)
       .WithForwardSoftLimitEnable(true)
       .WithReverseSoftLimitEnable(true);
@@ -255,10 +257,12 @@ void ElevatorSubsystem::LowerElevatorSubsystem::MoveTo(units::length::meter_t po
   m_target = position;
   units::volt_t feedforward = m_stageFeedforward.Calculate(m_lowerStageVelocity);
   stageMotor.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition, {}, feedforward.value());
+  nt_lowerStageTargetPosition->SetDouble(position.value());
 }
 
 void ElevatorSubsystem::UpperElevatorSubsystem::MoveTo(units::length::meter_t position) {
   stageMotor.SetControl(controls::PositionVoltage(position / kUpperStageDistancePerRotation));
+  nt_upperStageTargetPosition->SetDouble(position.value());
 }
 
 void ElevatorSubsystem::LowerElevatorSubsystem::Stop() {

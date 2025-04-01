@@ -219,8 +219,8 @@ namespace ElevatorConstants {
     {ElevatorPoint::AlgaeL2,   {0.40_m, 0.60_m}},
     {ElevatorPoint::CoralL3,   {0.75_m, 0_m}},
     {ElevatorPoint::AlgaeL3,   {0.75_m, 0.60_m}},
-    {ElevatorPoint::CoralL4,   {1.44_m, 0_m}},
-    {ElevatorPoint::Barge,     {1.44_m, 0.75_m}},
+    {ElevatorPoint::CoralL4,   {1.40_m, 0_m}},
+    {ElevatorPoint::Barge,     {1.40_m, 0.60_m}},
   };
 
   constexpr units::second_t kMinHomeTime = 0.5_s;

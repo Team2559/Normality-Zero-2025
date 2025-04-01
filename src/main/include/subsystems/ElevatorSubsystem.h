@@ -4,6 +4,8 @@
 
 #include <units/length.h>
 
+#include <networktables/GenericEntry.h>
+
 #include <frc/controller/ElevatorFeedforward.h>
 
 #include <frc2/command/SubsystemBase.h>
@@ -107,6 +109,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
     SparkFlex stageMotor;
     SparkRelativeEncoder stageEncoder;
     frc::ElevatorFeedforward m_stageFeedforward;
+    nt::GenericEntry* nt_lowerStageTargetPosition;
     units::meter_t m_target;
   };
 
@@ -124,6 +127,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
    private:
     TalonFXS stageMotor;
     ctre::phoenix6::StatusSignal<units::angle::turn_t>& stagePosition;
+    nt::GenericEntry* nt_upperStageTargetPosition;
   };
 
   class LowerElevatorSubsystem lowerStage;
