@@ -155,19 +155,19 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
       stageMotor.GetConfigurator().Refresh(currentLimitConfig);
       stageMotor.GetConfigurator().Refresh(softLimitConfig);
       CurrentLimitsConfigs reducedCurrentLimit = currentLimitConfig;
-      reducedCurrentLimit.WithStatorCurrentLimit(20_A);;
+      reducedCurrentLimit.WithStatorCurrentLimit(20_A);
       SoftwareLimitSwitchConfigs openBottomSoftLimit = softLimitConfig;
       openBottomSoftLimit.WithReverseSoftLimitEnable(false);
       stageMotor.GetConfigurator().Apply(reducedCurrentLimit);
       stageMotor.GetConfigurator().Apply(openBottomSoftLimit);
     },
-    {}
+    {this}
   ).AndThen(
     frc2::RunCommand(
       [this]() {
-        stageMotor.Set(-0.05);
+        stageMotor.SetControl(controls::DutyCycleOut(-0.05));
       },
-      {}
+      {this}
     ).WithTimeout(kMinHomeTime)
   ).AndThen(
     frc2::FunctionalCommand(
@@ -182,7 +182,7 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
       [this]() -> bool {
         return stageMotor.GetVelocity().GetValue() > -0.001_mps / kUpperStageDistancePerRotation;
       },
-      {}
+      {this}
     ).ToPtr()
   );
 }
