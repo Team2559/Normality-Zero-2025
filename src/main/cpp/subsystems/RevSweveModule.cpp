@@ -42,11 +42,15 @@ RevSwerveModule::RevSwerveModule(int driveCanID, int steerCanID, units::angle::t
       .SmartCurrentLimit(60.0)
       .Inverted(kSteerMotorInverted);
 
+    steerConfig.encoder
+      .PositionConversionFactor(kSteerFeedbackScale / kSteerGearRatio)
+      .VelocityConversionFactor(kSteerFeedbackScale / kSteerGearRatio * (1.0_s / 1.0_min));
+
     steerConfig.absoluteEncoder
       .ZeroOffset(wrapOffset(offset).value())
       .Inverted(kSteerSensorInverted)
       .PositionConversionFactor(kSteerFeedbackScale)
-      .VelocityConversionFactor(kSteerFeedbackScale);
+      .VelocityConversionFactor(kSteerFeedbackScale * (1.0_s / 1.0_min));
 
     steerConfig.closedLoop
       .SetFeedbackSensor(ClosedLoopConfig::FeedbackSensor::kAbsoluteEncoder)

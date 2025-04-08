@@ -91,6 +91,8 @@ namespace DriveConstants {
   constexpr units::meters_per_second_t kMaxDriveSpeed = 6895_rpm * kDriveDistancePerRotation;
   constexpr double kSlowDrivePercent = 0.80;
 
+  inline constexpr double kSteerGearRatio = 50.0/16.0 * 60.0/10.0; // 18.75
+
   // This is used for rotating the robot in place, about it's center.  This
   // may need to be empirically adjusted, but check kDriveMetersPerRotation
   // before making any adjustment here.
@@ -148,18 +150,17 @@ namespace DriveConstants {
 
   // Closed loop feedback for chassis translation
   namespace TranslationPID {
-    constexpr double kP = 1.0;
+    constexpr double kP = 1.5;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
   }
 
   // Closed loop feedback for chassis orientation
   namespace OrientationPID {
-    constexpr double kP = 1.0;
+    constexpr double kP = 2.0;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
   }
-
 }
 
 namespace VisionConstants {
@@ -168,8 +169,10 @@ namespace VisionConstants {
   // AprilTag field data; FMA events should all use the welded field, but off-season events may use the AndyMark field instead.
   const frc::AprilTagFieldLayout kAprilTags = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
   // Camera focal point position and orientation relative to the robot origin
-  constexpr frc::Transform3d kRobotToCam = frc::Transform3d(frc::Translation3d(0.5_m, 0_m, 0.5_m),
-                  frc::Rotation3d(0_rad, 0_rad, 0_rad));
+  constexpr frc::Transform3d kRobotToCam = frc::Transform3d(
+    frc::Translation3d(0.5_m, 0.0_m, 0.5_m),
+    frc::Rotation3d(0_rad, 0_rad, 0_rad)
+  );
 }
 
 namespace ClimbConstants {

@@ -14,6 +14,7 @@ void SwerveTrajectoryCommand::Initialize() {
   if (initialPose.has_value()) {
     m_driveSubsytem.ResetPose(frc::Pose3d(initialPose.value()));
   }
+  m_driveSubsytem.field.GetObject("traj")->SetPoses(m_trajectory.GetPoses());
 }
 
 void SwerveTrajectoryCommand::Execute() {
@@ -25,6 +26,7 @@ void SwerveTrajectoryCommand::Execute() {
 
 void SwerveTrajectoryCommand::End(bool wasCanceled) {
   m_driveSubsytem.Stop();
+  m_driveSubsytem.field.GetObject("traj")->SetPoses({});
 }
 
 bool SwerveTrajectoryCommand::IsFinished() {
