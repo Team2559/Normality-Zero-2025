@@ -8,6 +8,7 @@
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
+#include <frc/DriverStation.h>
 #include <frc2/command/button/Trigger.h>
 #include <frc2/command/WaitCommand.h>
 #include <frc2/command/RunCommand.h>
@@ -62,6 +63,11 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
     if (pose.has_value()) {
       m_driveSubsystem.ResetPose(pose.value());
     }
+
+    std::optional<frc::DriverStation::Alliance> alliance = frc::DriverStation::GetAlliance();
+    if (alliance.has_value()) {
+      m_isRedAlliance = alliance.value() == frc::DriverStation::Alliance::kRed;
+    }
   }).ToPtr());
 
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
@@ -92,7 +98,7 @@ void RobotContainer::ConfigureBindings() {
   }, {&m_driveSubsystem}).ToPtr());
 
   m_driverController.Back().OnTrue(frc2::InstantCommand([this]() -> void {
-    m_driveSubsystem.ResetFieldOrientation();
+    m_driveSubsystem.ResetFieldOrientation(m_isRedAlliance);
   }, {&m_driveSubsystem}).IgnoringDisable(true));
 
   m_driverController.RightBumper().ToggleOnTrue(m_algaeArmSubsystem.Release());
@@ -181,6 +187,11 @@ std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls(
     double fastDrivePercent = nt_fastDriveSpeed->GetDouble(1.0);
     LeftStickX *= fastDrivePercent;
     LeftStickY *= fastDrivePercent;
+  }
+
+  if (m_isRedAlliance) {
+    LeftStickX *= -1.0;
+    LeftStickY *= -1.0;
   }
   
 

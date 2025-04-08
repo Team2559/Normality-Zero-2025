@@ -64,6 +64,8 @@ DriveSubsystem::DriveSubsystem() :
       rearRightModule->TestDebug();
     }).WithTimeout(1.0_s)))
     .OnFalse(frc2::InstantCommand([this]() -> void {TestExit();}).ToPtr());
+
+  frc::SmartDashboard::PutData(&field);
 }
 
 void DriveSubsystem::ResetDrive() {
@@ -95,6 +97,8 @@ void DriveSubsystem::Periodic() {
   frc::SmartDashboard::PutNumber("Front right steer", frontRightModule->GetSteerPosition().convert<units::deg>().value());
   frc::SmartDashboard::PutNumber("Rear left steer", rearLeftModule->GetSteerPosition().convert<units::deg>().value());
   frc::SmartDashboard::PutNumber("Rear right steer", rearRightModule->GetSteerPosition().convert<units::deg>().value());
+
+  field.SetRobotPose(pose.ToPose2d());
 }
 
 void DriveSubsystem::SimulationPeriodic() {
@@ -126,8 +130,8 @@ void DriveSubsystem::TestExit() {
   rearRightModule->TestExit();
 }
 
-void DriveSubsystem::ResetFieldOrientation() {
-  m_poseEstimator->ResetPose(frc::Pose3d(GetPose().Translation(), frc::Rotation3d()));
+void DriveSubsystem::ResetFieldOrientation(bool inverted) {
+  m_poseEstimator->ResetPose(frc::Pose3d(GetPose().Translation(), inverted ? frc::Rotation3d(frc::Rotation2d(180_deg)): frc::Rotation3d()));
 }
 
 void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
@@ -241,5 +245,5 @@ frc::Pose3d DriveSubsystem::GetPose() {
 }
 
 void DriveSubsystem::UpdateVisionPose(frc::Pose3d measurement, units::millisecond_t timestamp) {
-  m_poseEstimator->AddVisionMeasurement(measurement, timestamp);
+  m_poseEstimator->AddVisionMeasurement(measurement, timestamp, {0.5, 0.5, 0.5, 0.8});
 }

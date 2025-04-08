@@ -43,6 +43,7 @@ class RobotContainer {
 
   bool m_fieldOriented = true;
   bool m_triggerSpeedEnabled = false;
+  bool m_isRedAlliance = false;
 
   // The robot's subsystems are defined here...
   DriveSubsystem m_driveSubsystem;
