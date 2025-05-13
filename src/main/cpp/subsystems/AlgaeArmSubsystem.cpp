@@ -32,7 +32,7 @@ AlgaeArmSubsystem::AlgaeArmSubsystem() :
 
     armConfig.absoluteEncoder
       .Inverted(kArmEncoderInverted)
-      .ZeroOffset(0.75);
+      .ZeroOffset(11.0 / 12.0);
 
     // armConfig.softLimit
     //   .ForwardSoftLimitEnabled(true)
