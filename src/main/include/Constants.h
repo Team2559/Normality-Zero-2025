@@ -279,7 +279,8 @@ namespace AlgaeArmConstants {
   constexpr bool kLeftRollerInverted = true;
   constexpr bool kRightRollerInverted = false;
 
-  constexpr double kArmGearRatio = 1.0 / 64.0;
+  constexpr double kArmGearRatio = 1.0 / 63.0;
+  constexpr double kArmZeroOffset = 11.0 / 12.0;
 
   constexpr units::turn_t kArmUpLimit = 90.0_deg;
   constexpr units::turn_t kArmDownLimit = -15.0_deg;
