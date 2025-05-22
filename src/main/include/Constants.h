@@ -46,7 +46,7 @@ namespace MotorConstants {
   // Torque constant for a CTR Minion, in newton-meters per amp
   constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTMinion = 0.01568_Nm / 1.0_A;
   // Speed constant for a CTR Minion, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::rpm, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
 }
 
 namespace DriveConstants {
@@ -197,6 +197,9 @@ namespace ElevatorConstants {
   constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kLowerStageDistancePerRotation = 24 * 3_mm * 2 / 360_deg;
   constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kUpperStageDistancePerRotation = 24 * 3_mm / 360_deg;
 
+  constexpr units::meter_t kLowerStageMaxHeight = 1.4_m;
+  constexpr units::meter_t kUpperStageMaxHeight = 0.6_m;
+
   namespace LowerStagePID {
     constexpr double kP = 0.0;
     constexpr double kI = 0.0;
@@ -210,9 +213,10 @@ namespace ElevatorConstants {
     constexpr double kP = 0.0;
     constexpr double kI = 0.0;
     constexpr double kD = 0.0;
-    constexpr double kS = 0.0; // Friction gain
-    constexpr double kG = 0.0; // Gravity gain
+    constexpr double kS = 0.65; // Friction gain, may be off
+    constexpr double kG = 0.8; // Gravity gain, may be a bit low
     constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
+    constexpr double kA = 0.0; // Acceleration gain
   }
 
   const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {
@@ -230,6 +234,8 @@ namespace ElevatorConstants {
   
   constexpr units::meter_t kLowerStageMovementTolerance = 1_cm;
   constexpr units::meter_t kUpperStageMovementTolerance = 1_cm;
+
+  constexpr units::meters_per_second_t kMaxSpeed = 0.5_mps;
 }
 
 namespace CoralTroughConstants {

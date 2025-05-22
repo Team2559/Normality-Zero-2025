@@ -141,13 +141,14 @@ void RobotContainer::ConfigureBindings() {
     return m_operatorController.GetLeftTriggerAxis() * ClimbConstants::kMaxClimbPower;
   }));
 
-  m_operatorController.Back().ToggleOnTrue(frc2::RunCommand(
-     [this]() -> void {
-       m_elevatorSubsystem.MoveLowerStage(ConditionRawJoystickInput(-m_operatorController.GetLeftY()));
-       m_elevatorSubsystem.MoveUpperStage(ConditionRawJoystickInput(-m_operatorController.GetLeftX()));
+  m_operatorController.Back().ToggleOnTrue(m_elevatorSubsystem.ManualMove(
+     [this]() -> units::meters_per_second_t {
+       return ConditionRawJoystickInput(-m_operatorController.GetLeftY()) * ElevatorConstants::kMaxSpeed;
      },
-     {&m_elevatorSubsystem}
-  ).WithName("Manual Elevator"));
+     [this]() -> units::meters_per_second_t {
+       return ConditionRawJoystickInput(-m_operatorController.GetRightY()) * ElevatorConstants::kMaxSpeed;
+     }
+  ));
 
   m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Algae));
   m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));

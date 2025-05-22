@@ -93,6 +93,8 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   frc2::CommandPtr MoveToNext(ElevatorPointType pointType);
   frc2::CommandPtr MoveToPrevious(ElevatorPointType pointType);
 
+  frc2::CommandPtr ManualMove(std::function<units::meters_per_second_t ()> lowerProvider, std::function<units::meters_per_second_t ()> upperProvider);
+
  private:
   class LowerElevatorSubsystem : public frc2::SubsystemBase {
    public:

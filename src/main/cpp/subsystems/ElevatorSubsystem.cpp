@@ -51,7 +51,7 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
       .VelocityConversionFactor(kLowerStageDistancePerRotation.value() / 60.0);
 
     lowerStageConfig.softLimit
-      .ForwardSoftLimit(1.4) // m
+      .ForwardSoftLimit(kLowerStageMaxHeight.value()) // m
       .ReverseSoftLimit(0.0) // m
       .ForwardSoftLimitEnabled(true)
       .ReverseSoftLimitEnabled(true);
@@ -81,10 +81,15 @@ ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
       .WithNeutralMode(NeutralModeValue::Brake);
 
     upperStageConfig.SoftwareLimitSwitch
-      .WithForwardSoftLimitThreshold(0.6_m / kUpperStageDistancePerRotation)
+      .WithForwardSoftLimitThreshold(kUpperStageMaxHeight / kUpperStageDistancePerRotation)
       .WithReverseSoftLimitThreshold(0_deg)
       .WithForwardSoftLimitEnable(true)
       .WithReverseSoftLimitEnable(true);
+
+    upperStageConfig.MotionMagic
+      .WithMotionMagicCruiseVelocity(kMaxSpeed / kUpperStageDistancePerRotation);
+      // .WithMotionMagicAcceleration(kMaxAccel / kUpperStageDistancePerRotation)
+      // .WithMotionMagicJerk(kMaxJerk / kUpperStageDistancePerRotation);
 
     upperStageConfig.Slot0
       .WithGravityType(GravityTypeValue::Elevator_Static)
@@ -128,13 +133,15 @@ frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::Home() {
         stageMotor.Set(-0.05);
       },
       [this](bool wasCanceled) {
+        stageEncoder.SetPosition(0.0);
+        stageMotor.StopMotor();
         SparkFlexConfig regularCurrentLimit;
         regularCurrentLimit.SmartCurrentLimit(defaultCurrentLimit);
         regularCurrentLimit.softLimit.ReverseSoftLimitEnabled(true);
         stageMotor.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
       },
       [this]() -> bool {
-        return stageEncoder.GetVelocity() > (-0.001_mps).value();
+        return stageEncoder.GetVelocity() > (-0.002_mps).value();
       },
       {this}
     ).ToPtr()
@@ -165,7 +172,7 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
   ).AndThen(
     frc2::RunCommand(
       [this]() {
-        stageMotor.SetControl(controls::DutyCycleOut(-0.05));
+        stageMotor.SetControl(controls::DutyCycleOut(-0.03));
       },
       {this}
     ).WithTimeout(kMinHomeTime)
@@ -173,9 +180,11 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
     frc2::FunctionalCommand(
       []() {},
       [this]() {
-        stageMotor.Set(-0.05);
+        stageMotor.SetControl(controls::DutyCycleOut(-0.03));
       },
       [this](bool wasCanceled) {
+        stageMotor.SetPosition(0.0_rad);
+        stageMotor.StopMotor();
         stageMotor.GetConfigurator().Apply(currentLimitConfig);
         stageMotor.GetConfigurator().Apply(softLimitConfig);
       },
@@ -208,6 +217,33 @@ void ElevatorSubsystem::MoveUpperStage(double power) {
 
 void ElevatorSubsystem::UpperElevatorSubsystem::Move(double power) {
   stageMotor.Set(power);
+}
+
+frc2::CommandPtr ElevatorSubsystem::ManualMove(std::function<units::meters_per_second_t ()> lowerProvider, std::function<units::meters_per_second_t ()> upperProvider) {
+  static units::meter_t lowerTarget;
+  static units::meter_t upperTarget;
+  return frc2::FunctionalCommand(
+    [this]() {
+      lowerTarget = lowerStage.GetPosition();
+      upperTarget = upperStage.GetPosition();
+    },
+    [this, lowerProvider, upperProvider]() {
+      lowerTarget += lowerProvider() * 20_ms;
+      upperTarget += upperProvider() * 20_ms;
+      lowerTarget = units::math::max(units::math::min(lowerTarget, kLowerStageMaxHeight), 0.0_m);
+      upperTarget = units::math::max(units::math::min(upperTarget, kUpperStageMaxHeight), 0.0_m);
+      // lowerStage.MoveTo(lowerTarget);
+      upperStage.MoveTo(upperTarget);
+    },
+    [this](bool wasCanceled) {
+      lowerStage.Stop();
+      upperStage.Stop();
+    },
+    []() -> bool {
+      return false;
+    },
+    {this, &lowerStage, &upperStage}
+  ).WithName("Manual Elevator");
 }
 
 ElevatorPoint ElevatorSubsystem::GetCurrent() {
@@ -261,7 +297,7 @@ void ElevatorSubsystem::LowerElevatorSubsystem::MoveTo(units::length::meter_t po
 }
 
 void ElevatorSubsystem::UpperElevatorSubsystem::MoveTo(units::length::meter_t position) {
-  stageMotor.SetControl(controls::PositionVoltage(position / kUpperStageDistancePerRotation));
+  stageMotor.SetControl(controls::MotionMagicVoltage(position / kUpperStageDistancePerRotation));
   nt_upperStageTargetPosition->SetDouble(position.value());
 }
 
