@@ -11,6 +11,8 @@
 #include <frc2/command/SubsystemBase.h>
 #include <frc2/command/CommandPtr.h>
 
+#include <frc2/command/sysid/SysIdRoutine.h>
+
 #include <ctre/phoenix6/TalonFXS.hpp>
 
 #include <rev/SparkFlex.h>
@@ -95,6 +97,9 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
 
   frc2::CommandPtr ManualMove(std::function<units::meters_per_second_t ()> lowerProvider, std::function<units::meters_per_second_t ()> upperProvider);
 
+  frc2::CommandPtr SysIdQuasistaticUpper(frc2::sysid::Direction direction);
+  frc2::CommandPtr SysIdDynamicUpper(frc2::sysid::Direction direction);
+
  private:
   class LowerElevatorSubsystem : public frc2::SubsystemBase {
    public:
@@ -126,10 +131,15 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
     void Stop();
 
     units::meter_t GetPosition();
+
+    frc2::CommandPtr SysIdQuasistatic(frc2::sysid::Direction direction);
+    frc2::CommandPtr SysIdDynamic(frc2::sysid::Direction direction);
    private:
     TalonFXS stageMotor;
     ctre::phoenix6::StatusSignal<units::angle::turn_t>& stagePosition;
     nt::GenericEntry* nt_upperStageTargetPosition;
+
+    frc2::sysid::SysIdRoutine m_sysIdRoutine;
   };
 
   class LowerElevatorSubsystem lowerStage;

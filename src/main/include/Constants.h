@@ -7,9 +7,10 @@
 #include <map>
 #include <units/time.h>
 #include <units/angle.h>
-#include <units/length.h>
 #include <units/angular_velocity.h>
+#include <units/length.h>
 #include <units/velocity.h>
+#include <units/acceleration.h>
 #include <units/voltage.h>
 #include <units/torque.h>
 #include <units/current.h>
@@ -198,7 +199,7 @@ namespace ElevatorConstants {
   constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kUpperStageDistancePerRotation = 24 * 3_mm / 360_deg;
 
   constexpr units::meter_t kLowerStageMaxHeight = 1.4_m;
-  constexpr units::meter_t kUpperStageMaxHeight = 0.6_m;
+  constexpr units::meter_t kUpperStageMaxHeight = 0.68_m;
 
   namespace LowerStagePID {
     constexpr double kP = 0.0;
@@ -210,13 +211,13 @@ namespace ElevatorConstants {
   }
 
   namespace UpperStagePID {
-    constexpr double kP = 0.0;
+    constexpr double kP = 38.69 * kUpperStageDistancePerRotation.value(); // Volts per error
     constexpr double kI = 0.0;
-    constexpr double kD = 0.0;
-    constexpr double kS = 0.65; // Friction gain, may be off
-    constexpr double kG = 0.8; // Gravity gain, may be a bit low
-    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
-    constexpr double kA = 0.0; // Acceleration gain
+    constexpr double kD = 3.1643 * kUpperStageDistancePerRotation.value(); // Volts per change in error
+    constexpr double kS = 0.71063; // Friction gain, volts in the motion direction
+    constexpr double kG = 0.64645; // Gravity gain, volts in the upwards direction
+    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain, volts per motion
+    constexpr double kA = 0.18681 * kUpperStageDistancePerRotation.value(); // Acceleration gain, volts per change in motion
   }
 
   const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {
@@ -235,7 +236,10 @@ namespace ElevatorConstants {
   constexpr units::meter_t kLowerStageMovementTolerance = 1_cm;
   constexpr units::meter_t kUpperStageMovementTolerance = 1_cm;
 
-  constexpr units::meters_per_second_t kMaxSpeed = 0.5_mps;
+  constexpr units::meters_per_second_t kOperatorSpeed = 0.5_mps;
+  constexpr units::meters_per_second_t kMaxSpeed = 1.0_mps;
+  constexpr units::meters_per_second_squared_t kMaxAccel = 3.0_mps_sq;
+  // constexpr units::meters_per_second_cubed_t kMaxJerk = 0.5_mps;
 }
 
 namespace CoralTroughConstants {

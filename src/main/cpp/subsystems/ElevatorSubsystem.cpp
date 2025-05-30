@@ -26,6 +26,9 @@ using namespace ctre::phoenix6;
 using namespace rev::spark;
 
 ElevatorSubsystem::ElevatorSubsystem() {
+  AddChild("Lower Stage", &lowerStage);
+  AddChild("Upper Stage", &upperStage);
+
   frc::ShuffleboardTab &tab = frc::Shuffleboard::GetTab("Mechanisms");
 
   tab.AddDouble("Lower-Stage Position", [this]() {return lowerStage.GetPosition().value();});
@@ -65,7 +68,27 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
 ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
   stageMotor{kUpperStageMotorCanID},
   stagePosition{stageMotor.GetPosition()},
-  nt_upperStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Upper-Stage Target Position", 0.0).GetEntry()}
+  nt_upperStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Upper-Stage Target Position", 0.0).GetEntry()},
+  m_sysIdRoutine{
+    frc2::sysid::Config{{}, 3_V, {}, nullptr},
+    frc2::sysid::Mechanism{
+      [this](units::volt_t driveVoltage) {
+        stageMotor.SetControl(controls::VoltageOut(driveVoltage));
+      },
+      [this](frc::sysid::SysIdRoutineLog* log) {
+        auto stageVoltage = stageMotor.GetMotorVoltage();
+        auto stageVelocity = stageMotor.GetVelocity();
+        stageVoltage.Refresh();
+        stagePosition.Refresh();
+        stageVelocity.Refresh();
+        log->Motor("upperElevatorStage")
+            .voltage(stageVoltage.GetValue())
+            .position(stagePosition.GetValue() * kUpperStageDistancePerRotation)
+            .velocity(stageVelocity.GetValue() * kUpperStageDistancePerRotation);
+      },
+      this
+    }
+  }
 {
   {
     using namespace ctre::phoenix6::configs;
@@ -73,7 +96,7 @@ ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
     TalonFXSConfiguration upperStageConfig;
     upperStageConfig.Commutation.WithMotorArrangement(MotorArrangementValue::Minion_JST);
     upperStageConfig.CurrentLimits
-      .WithStatorCurrentLimit(80.0_A)
+      .WithStatorCurrentLimit(50.0_A)
       .WithSupplyCurrentLimit(50.0_A)
       .WithSupplyCurrentLowerLimit(40.0_A);
     upperStageConfig.MotorOutput
@@ -87,8 +110,8 @@ ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
       .WithReverseSoftLimitEnable(true);
 
     upperStageConfig.MotionMagic
-      .WithMotionMagicCruiseVelocity(kMaxSpeed / kUpperStageDistancePerRotation);
-      // .WithMotionMagicAcceleration(kMaxAccel / kUpperStageDistancePerRotation)
+      .WithMotionMagicCruiseVelocity(kMaxSpeed / kUpperStageDistancePerRotation)
+      .WithMotionMagicAcceleration(kMaxAccel / kUpperStageDistancePerRotation);
       // .WithMotionMagicJerk(kMaxJerk / kUpperStageDistancePerRotation);
 
     upperStageConfig.Slot0
@@ -371,4 +394,39 @@ units::meter_t ElevatorSubsystem::LowerElevatorSubsystem::GetPosition() {
 units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
   stagePosition.Refresh();
   return stagePosition.GetValue() * kUpperStageDistancePerRotation;
+}
+
+
+frc2::CommandPtr ElevatorSubsystem::SysIdQuasistaticUpper(frc2::sysid::Direction direction) {
+  return upperStage.SysIdQuasistatic(direction);
+}
+
+frc2::CommandPtr ElevatorSubsystem::SysIdDynamicUpper(frc2::sysid::Direction direction) {
+  return upperStage.SysIdDynamic(direction);
+}
+
+frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
+  std::function<bool ()> bound;
+  switch (direction) {
+    case frc2::sysid::Direction::kForward:
+      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation >= kUpperStageMaxHeight;};
+      break;
+    case frc2::sysid::Direction::kReverse:
+      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
+      break;
+  }
+  return m_sysIdRoutine.Quasistatic(direction).Until(bound);
+}
+
+frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
+  std::function<bool ()> bound;
+  switch (direction) {
+    case frc2::sysid::Direction::kForward:
+      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation >= kUpperStageMaxHeight;};
+      break;
+    case frc2::sysid::Direction::kReverse:
+      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
+      break;
+  }
+  return m_sysIdRoutine.Dynamic(direction).Until(bound);
 }

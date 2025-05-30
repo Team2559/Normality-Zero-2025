@@ -14,6 +14,7 @@
 #include <frc2/command/RunCommand.h>
 #include <frc2/command/InstantCommand.h>
 #include <frc2/command/button/RobotModeTriggers.h>
+#include <frc2/command/button/NetworkButton.h>
 #include <cameraserver/CameraServer.h>
 
 RobotContainer::RobotContainer() : m_visionSubsystem(
@@ -73,6 +74,26 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Elevator Subsystem", &m_elevatorSubsystem);
+
+  mechTab.Add("Upper Stage Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
+  mechTab.Add("Upper Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
+
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Upper Stage Quasistatic SysID")
+  )
+    .WhileTrue(
+      m_elevatorSubsystem.SysIdQuasistaticUpper(frc2::sysid::Direction::kForward)
+        .AndThen(m_elevatorSubsystem.SysIdQuasistaticUpper(frc2::sysid::Direction::kReverse))
+    );
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Upper Stage Dynamic SysID")
+  )
+    .WhileTrue(
+      m_elevatorSubsystem.SysIdDynamicUpper(frc2::sysid::Direction::kForward)
+        .AndThen(m_elevatorSubsystem.SysIdDynamicUpper(frc2::sysid::Direction::kReverse))
+    );
 }
 
 void RobotContainer::ConfigureBindings() {
@@ -143,10 +164,10 @@ void RobotContainer::ConfigureBindings() {
 
   m_operatorController.Back().ToggleOnTrue(m_elevatorSubsystem.ManualMove(
      [this]() -> units::meters_per_second_t {
-       return ConditionRawJoystickInput(-m_operatorController.GetLeftY()) * ElevatorConstants::kMaxSpeed;
+       return ConditionRawJoystickInput(-m_operatorController.GetLeftY()) * ElevatorConstants::kOperatorSpeed;
      },
      [this]() -> units::meters_per_second_t {
-       return ConditionRawJoystickInput(-m_operatorController.GetRightY()) * ElevatorConstants::kMaxSpeed;
+       return ConditionRawJoystickInput(-m_operatorController.GetRightY()) * ElevatorConstants::kOperatorSpeed;
      }
   ));
 
