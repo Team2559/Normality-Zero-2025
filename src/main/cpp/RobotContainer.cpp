@@ -75,9 +75,27 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Elevator Subsystem", &m_elevatorSubsystem);
 
+  mechTab.Add("Lower Stage Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
+  mechTab.Add("Lower Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
   mechTab.Add("Upper Stage Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
   mechTab.Add("Upper Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
 
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Lower Stage Quasistatic SysID")
+  )
+    .WhileTrue(
+      m_elevatorSubsystem.SysIdQuasistaticLower(frc2::sysid::Direction::kForward)
+        .AndThen(m_elevatorSubsystem.SysIdQuasistaticLower(frc2::sysid::Direction::kReverse))
+    );
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Lower Stage Dynamic SysID")
+  )
+    .WhileTrue(
+      m_elevatorSubsystem.SysIdDynamicLower(frc2::sysid::Direction::kForward)
+        .AndThen(m_elevatorSubsystem.SysIdDynamicLower(frc2::sysid::Direction::kReverse))
+    );
   frc2::NetworkButton(
     nt::NetworkTableInstance::GetDefault()
       .GetBooleanTopic("/Shuffleboard/Mechanisms/Upper Stage Quasistatic SysID")

@@ -40,7 +40,23 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
   stageMotor{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
   stageEncoder{stageMotor.GetEncoder()},
   m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV},
-  nt_lowerStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Lower-Stage Target Position", 0.0).GetEntry()}
+  nt_lowerStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Lower-Stage Target Position", 0.0).GetEntry()},
+  m_sysIdRoutine{
+    frc2::sysid::Config{{}, 3_V, {}, nullptr},
+    frc2::sysid::Mechanism{
+      [this](units::volt_t driveVoltage) {
+        stageMotor.SetVoltage(driveVoltage);
+      },
+      [this](frc::sysid::SysIdRoutineLog* log) {
+        auto stageVoltage = units::volt_t{stageMotor.GetBusVoltage()} * stageMotor.GetAppliedOutput();
+        log->Motor("upperElevatorStage")
+            .voltage(stageVoltage)
+            .position(units::meter_t{stageEncoder.GetPosition()})
+            .velocity(units::meters_per_second_t{stageEncoder.GetVelocity()});
+      },
+      this
+    }
+  }
 {
   {
     SparkFlexConfig lowerStageConfig;
@@ -396,6 +412,39 @@ units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
   return stagePosition.GetValue() * kUpperStageDistancePerRotation;
 }
 
+frc2::CommandPtr ElevatorSubsystem::SysIdQuasistaticLower(frc2::sysid::Direction direction) {
+  return lowerStage.SysIdQuasistatic(direction);
+}
+
+frc2::CommandPtr ElevatorSubsystem::SysIdDynamicLower(frc2::sysid::Direction direction) {
+  return lowerStage.SysIdDynamic(direction);
+}
+
+std::function<bool ()> ElevatorSubsystem::LowerElevatorSubsystem::MovementBound(frc2::sysid::Direction direction) {
+  switch (direction) {
+    case frc2::sysid::Direction::kForward:
+      return [this]() {return units::meter_t{stageEncoder.GetPosition()} >= kLowerStageMaxHeight;};
+    case frc2::sysid::Direction::kReverse:
+      return [this]() {return units::meter_t{stageEncoder.GetPosition()} <= 0.01_m;};
+  }
+}
+
+frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
+  return m_sysIdRoutine.Quasistatic(direction).Until(MovementBound(direction));
+}
+
+frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
+  return m_sysIdRoutine.Dynamic(direction).Until(MovementBound(direction));
+}
+
+std::function<bool ()> ElevatorSubsystem::UpperElevatorSubsystem::MovementBound(frc2::sysid::Direction direction) {
+  switch (direction) {
+    case frc2::sysid::Direction::kForward:
+      return [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation >= kUpperStageMaxHeight;};
+    case frc2::sysid::Direction::kReverse:
+      return [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
+  }
+}
 
 frc2::CommandPtr ElevatorSubsystem::SysIdQuasistaticUpper(frc2::sysid::Direction direction) {
   return upperStage.SysIdQuasistatic(direction);
@@ -406,16 +455,7 @@ frc2::CommandPtr ElevatorSubsystem::SysIdDynamicUpper(frc2::sysid::Direction dir
 }
 
 frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
-  std::function<bool ()> bound;
-  switch (direction) {
-    case frc2::sysid::Direction::kForward:
-      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation >= kUpperStageMaxHeight;};
-      break;
-    case frc2::sysid::Direction::kReverse:
-      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
-      break;
-  }
-  return m_sysIdRoutine.Quasistatic(direction).Until(bound);
+  return m_sysIdRoutine.Quasistatic(direction).Until(MovementBound(direction));
 }
 
 frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
@@ -428,5 +468,5 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdDynamic(frc2::s
       bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
       break;
   }
-  return m_sysIdRoutine.Dynamic(direction).Until(bound);
+  return m_sysIdRoutine.Dynamic(direction).Until(MovementBound(direction));
 }
