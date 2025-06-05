@@ -9,10 +9,12 @@
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
 #include <frc/DriverStation.h>
+#include <frc/livewindow/LiveWindow.h>
 #include <frc2/command/button/Trigger.h>
 #include <frc2/command/WaitCommand.h>
 #include <frc2/command/RunCommand.h>
 #include <frc2/command/InstantCommand.h>
+#include <frc2/command/StartEndCommand.h>
 #include <frc2/command/button/RobotModeTriggers.h>
 #include <cameraserver/CameraServer.h>
 
@@ -33,7 +35,7 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
         std::get<1>(controls) * DriveConstants::kMaxDriveSpeed,
         std::get<2>(controls) * DriveConstants::kMaxTurnRate,
         std::get<3>(controls));
-  }, {&m_driveSubsystem}).ToPtr());
+  }, {&m_driveSubsystem}).WithName("TeleopDrive"));
 
   // Configure the button bindings
   ConfigureBindings();
@@ -68,7 +70,10 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
     if (alliance.has_value()) {
       m_isRedAlliance = alliance.value() == frc::DriverStation::Alliance::kRed;
     }
-  }).ToPtr());
+  }).WithName("InitializeVision"));
+
+  frc::Shuffleboard::GetTab("LiveWindow")
+    .AddBoolean("Live Window Enabled", frc::LiveWindow::IsEnabled);
 
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
@@ -87,7 +92,7 @@ void RobotContainer::ConfigureBindings() {
   // pressed, cancelling on release.
   // m_driverController.B().WhileTrue(m_subsystem.ExampleMethodCommand());
 
-  m_driverController.Start().ToggleOnTrue(frc2::RunCommand([this]() -> void {
+  static auto steerOnlyCommand = frc2::RunCommand([this]() -> void {
     const auto controls = GetDriveTeleopControls();
 
     m_driveSubsystem.SteerTo(
@@ -95,11 +100,20 @@ void RobotContainer::ConfigureBindings() {
         std::get<1>(controls) * DriveConstants::kMaxDriveSpeed,
         std::get<2>(controls) * DriveConstants::kMaxTurnRate,
         std::get<3>(controls));
-  }, {&m_driveSubsystem}).ToPtr());
+  }, {&m_driveSubsystem});
+
+  frc::Shuffleboard::GetTab("Drive").Add("Steer Only", steerOnlyCommand);
 
   m_driverController.Back().OnTrue(frc2::InstantCommand([this]() -> void {
     m_driveSubsystem.ResetFieldOrientation(m_isRedAlliance);
-  }, {&m_driveSubsystem}).IgnoringDisable(true));
+  }, {&m_driveSubsystem}).IgnoringDisable(true).WithName("Reset Field Orientation"));
+
+  m_driverController.Start().ToggleOnTrue(
+    frc2::StartEndCommand(
+      []() {frc::LiveWindow::SetEnabled(true);},
+      []() {frc::LiveWindow::SetEnabled(false);}
+    ).WithName("LiveWindow")
+  );
 
   m_driverController.RightBumper().ToggleOnTrue(m_algaeArmSubsystem.Release());
 

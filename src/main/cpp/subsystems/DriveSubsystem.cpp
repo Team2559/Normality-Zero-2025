@@ -11,6 +11,7 @@
 using namespace DriveConstants;
 
 DriveSubsystem::DriveSubsystem() :
+  SubsystemBase("Drive Subsystem"),
   frontLeftModule{new RevSwerveModule(kFrontLeftDriveMotorCanID, kFrontLeftSteerMotorCanID, kFrontLeftSteerOffset)},
   frontRightModule{new RevSwerveModule(kFrontRightDriveMotorCanID, kFrontRightSteerMotorCanID, kFrontRightSteerOffset)},
   rearLeftModule{new RevSwerveModule(kRearLeftDriveMotorCanID, kRearLeftSteerMotorCanID, kRearLeftSteerOffset)},
