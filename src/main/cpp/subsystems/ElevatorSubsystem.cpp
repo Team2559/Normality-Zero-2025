@@ -29,6 +29,8 @@ ElevatorSubsystem::ElevatorSubsystem() {
   AddChild("Lower Stage", &lowerStage);
   AddChild("Upper Stage", &upperStage);
 
+  SetName("Elevator Subsystem");
+
   frc::ShuffleboardTab &tab = frc::Shuffleboard::GetTab("Mechanisms");
 
   tab.AddDouble("Lower-Stage Position", [this]() {return lowerStage.GetPosition().value();});
@@ -39,7 +41,7 @@ ElevatorSubsystem::ElevatorSubsystem() {
 ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
   stageMotor{kLowerStageMotorCanID, SparkFlex::MotorType::kBrushless},
   stageEncoder{stageMotor.GetEncoder()},
-  m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV},
+  m_stageFeedforward{LowerStagePID::kS, LowerStagePID::kG, LowerStagePID::kV, LowerStagePID::kA},
   nt_lowerStageTargetPosition{frc::Shuffleboard::GetTab("Mechanisms").Add("Lower-Stage Target Position", 0.0).GetEntry()},
   m_sysIdRoutine{
     frc2::sysid::Config{{}, 3_V, {}, nullptr},
@@ -49,10 +51,10 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
       },
       [this](frc::sysid::SysIdRoutineLog* log) {
         auto stageVoltage = units::volt_t{stageMotor.GetBusVoltage()} * stageMotor.GetAppliedOutput();
-        log->Motor("upperElevatorStage")
+        log->Motor("lowerElevatorStage")
             .voltage(stageVoltage)
-            .position(units::meter_t{stageEncoder.GetPosition()})
-            .velocity(units::meters_per_second_t{stageEncoder.GetVelocity()});
+            .position(units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale})
+            .velocity(units::meters_per_second_t{stageEncoder.GetVelocity() * kInvLowerStageFeedbackScale});
       },
       this
     }
@@ -66,16 +68,20 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
       .Inverted(kLowerStageInverted);
 
     lowerStageConfig.encoder
-      .PositionConversionFactor(kLowerStageDistancePerRotation.value())
-      .VelocityConversionFactor(kLowerStageDistancePerRotation.value() / 60.0);
+      .PositionConversionFactor(kLowerStageDistancePerRotation.value() * kLowerStageFeedbackScale)
+      .VelocityConversionFactor(kLowerStageDistancePerRotation.value() / 60.0 * kLowerStageFeedbackScale);
 
     lowerStageConfig.softLimit
-      .ForwardSoftLimit(kLowerStageMaxHeight.value()) // m
-      .ReverseSoftLimit(0.0) // m
+      .ForwardSoftLimit(kLowerStageMaxHeight.value() * kLowerStageFeedbackScale) // m
+      .ReverseSoftLimit(0.0 * kLowerStageFeedbackScale) // m
       .ForwardSoftLimitEnabled(true)
       .ReverseSoftLimitEnabled(true);
 
-    lowerStageConfig.closedLoop.Pid(LowerStagePID::kP, LowerStagePID::kI, LowerStagePID::kD);
+    lowerStageConfig.closedLoop.Pid(
+      LowerStagePID::kP * kInvLowerStageFeedbackScale,
+      LowerStagePID::kI * kInvLowerStageFeedbackScale,
+      LowerStagePID::kD * kInvLowerStageFeedbackScale
+    );
 
     stageMotor.Configure(lowerStageConfig, SparkFlex::ResetMode::kResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
   }
@@ -137,7 +143,8 @@ ElevatorSubsystem::UpperElevatorSubsystem::UpperElevatorSubsystem():
       .WithKD(UpperStagePID::kD)
       .WithKG(UpperStagePID::kG)
       .WithKS(UpperStagePID::kS)
-      .WithKV(UpperStagePID::kV);
+      .WithKV(UpperStagePID::kV)
+      .WithKA(UpperStagePID::kA);
 
     stageMotor.GetConfigurator().Apply(upperStageConfig);
   }
@@ -180,7 +187,7 @@ frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::Home() {
         stageMotor.Configure(regularCurrentLimit, SparkFlex::ResetMode::kNoResetSafeParameters, SparkFlex::PersistMode::kNoPersistParameters);
       },
       [this]() -> bool {
-        return stageEncoder.GetVelocity() > (-0.002_mps).value();
+        return stageEncoder.GetVelocity() * kInvLowerStageFeedbackScale > (-0.002_mps).value();
       },
       {this}
     ).ToPtr()
@@ -271,7 +278,7 @@ frc2::CommandPtr ElevatorSubsystem::ManualMove(std::function<units::meters_per_s
       upperTarget += upperProvider() * 20_ms;
       lowerTarget = units::math::max(units::math::min(lowerTarget, kLowerStageMaxHeight), 0.0_m);
       upperTarget = units::math::max(units::math::min(upperTarget, kUpperStageMaxHeight), 0.0_m);
-      // lowerStage.MoveTo(lowerTarget);
+      lowerStage.MoveTo(lowerTarget);
       upperStage.MoveTo(upperTarget);
     },
     [this](bool wasCanceled) {
@@ -331,7 +338,7 @@ void ElevatorSubsystem::LowerElevatorSubsystem::MoveTo(units::length::meter_t po
   units::meters_per_second_t m_lowerStageVelocity = (position - m_target) / 20_ms;
   m_target = position;
   units::volt_t feedforward = m_stageFeedforward.Calculate(m_lowerStageVelocity);
-  stageMotor.GetClosedLoopController().SetReference(position.value(), SparkFlex::ControlType::kPosition, {}, feedforward.value());
+  stageMotor.GetClosedLoopController().SetReference(position.value() * kLowerStageFeedbackScale, SparkFlex::ControlType::kPosition, {}, feedforward.value());
   nt_lowerStageTargetPosition->SetDouble(position.value());
 }
 
@@ -404,7 +411,7 @@ frc2::CommandPtr ElevatorSubsystem::MoveToPrevious(ElevatorPointType pointType) 
 }
 
 units::meter_t ElevatorSubsystem::LowerElevatorSubsystem::GetPosition() {
-  return units::meter_t{stageEncoder.GetPosition()};
+  return units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale};
 }
 
 units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
@@ -423,9 +430,9 @@ frc2::CommandPtr ElevatorSubsystem::SysIdDynamicLower(frc2::sysid::Direction dir
 std::function<bool ()> ElevatorSubsystem::LowerElevatorSubsystem::MovementBound(frc2::sysid::Direction direction) {
   switch (direction) {
     case frc2::sysid::Direction::kForward:
-      return [this]() {return units::meter_t{stageEncoder.GetPosition()} >= kLowerStageMaxHeight;};
+      return [this]() {return units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale} >= kLowerStageMaxHeight;};
     case frc2::sysid::Direction::kReverse:
-      return [this]() {return units::meter_t{stageEncoder.GetPosition()} <= 0.01_m;};
+      return [this]() {return units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale} <= 0.01_m;};
   }
 }
 
@@ -459,14 +466,5 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdQuasistatic(frc
 }
 
 frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
-  std::function<bool ()> bound;
-  switch (direction) {
-    case frc2::sysid::Direction::kForward:
-      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation >= kUpperStageMaxHeight;};
-      break;
-    case frc2::sysid::Direction::kReverse:
-      bound = [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
-      break;
-  }
   return m_sysIdRoutine.Dynamic(direction).Until(MovementBound(direction));
 }

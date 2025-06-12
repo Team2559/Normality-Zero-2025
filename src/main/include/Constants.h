@@ -201,13 +201,17 @@ namespace ElevatorConstants {
   constexpr units::meter_t kLowerStageMaxHeight = 1.4_m;
   constexpr units::meter_t kUpperStageMaxHeight = 0.68_m;
 
+  constexpr double kLowerStageFeedbackScale = 200.0;
+  constexpr double kInvLowerStageFeedbackScale = 1.0 / kLowerStageFeedbackScale;
+
   namespace LowerStagePID {
-    constexpr double kP = 0.0;
+    constexpr double kP = 8.0905;
     constexpr double kI = 0.0;
-    constexpr double kD = 0.0;
-    constexpr units::volt_t kS = 0.0_V;
-    constexpr units::volt_t kG = 1.0_V;
+    constexpr double kD = 670.13 / 2.0;
+    constexpr units::volt_t kS = 0.01298_V;
+    constexpr units::volt_t kG = 0.67434_V;
     constexpr units::unit_t<units::compound_unit<units::volts, units::inverse<units::meters_per_second>>> kV = 1 / (MotorConstants::kVNeoVortex * kLowerStageDistancePerRotation);
+    constexpr units::unit_t<units::compound_unit<units::volts, units::inverse<units::meters_per_second_squared>>> kA {0.36879 * 0.0};
   }
 
   namespace UpperStagePID {
@@ -217,7 +221,7 @@ namespace ElevatorConstants {
     constexpr double kS = 0.71063; // Friction gain, volts in the motion direction
     constexpr double kG = 0.64645; // Gravity gain, volts in the upwards direction
     constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain, volts per motion
-    constexpr double kA = 0.18681 * kUpperStageDistancePerRotation.value(); // Acceleration gain, volts per change in motion
+    constexpr double kA = 0.18681 * kUpperStageDistancePerRotation.value() * 0.0; // Acceleration gain, volts per change in motion
   }
 
   const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {

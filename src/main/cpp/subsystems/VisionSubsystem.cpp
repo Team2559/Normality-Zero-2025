@@ -10,6 +10,8 @@ VisionSubsystem::VisionSubsystem(std::function<frc::Pose3d ()> accessor, std::fu
   m_accessor{accessor},
   m_updater{updater}
 {
+  SetName("Vision Subsystem");
+
   m_poseEstimator.SetMultiTagFallbackStrategy(kFallbackStrategy);
 }
 
