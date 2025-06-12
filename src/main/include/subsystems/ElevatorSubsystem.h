@@ -1,10 +1,17 @@
 #pragma once
 
-#include "units/length.h"
 #include <array>
+
+#include <units/length.h>
+
+#include <networktables/GenericEntry.h>
+
+#include <frc/controller/ElevatorFeedforward.h>
 
 #include <frc2/command/SubsystemBase.h>
 #include <frc2/command/CommandPtr.h>
+
+#include <frc2/command/sysid/SysIdRoutine.h>
 
 #include <ctre/phoenix6/TalonFXS.hpp>
 
@@ -84,14 +91,70 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   ElevatorPoint GetPrevious(ElevatorPointType pointType);
 
   frc2::CommandPtr MoveTo(ElevatorPoint point);
+  frc2::CommandPtr MoveTo(std::function<ElevatorPoint ()> pointProvider);
   frc2::CommandPtr MoveToNext(ElevatorPointType pointType);
   frc2::CommandPtr MoveToPrevious(ElevatorPointType pointType);
 
- private:
-  SparkFlex lowerStage;
-  TalonFXS upperStage;
-  ElevatorPoint currentElevatorPoint;
+  frc2::CommandPtr ManualMove(std::function<units::meters_per_second_t ()> lowerProvider, std::function<units::meters_per_second_t ()> upperProvider);
 
-  void MoveLowerStage(units::length::meter_t position);
-  void MoveUpperStage(units::length::meter_t position);
+  frc2::CommandPtr SysIdQuasistaticLower(frc2::sysid::Direction direction);
+  frc2::CommandPtr SysIdDynamicLower(frc2::sysid::Direction direction);
+  frc2::CommandPtr SysIdQuasistaticUpper(frc2::sysid::Direction direction);
+  frc2::CommandPtr SysIdDynamicUpper(frc2::sysid::Direction direction);
+
+ private:
+  class LowerElevatorSubsystem : public frc2::SubsystemBase {
+   public:
+    LowerElevatorSubsystem();
+
+    frc2::CommandPtr Home();
+
+    void Move(double power);
+    void MoveTo(units::length::meter_t position);
+    void Stop();
+
+    units::meter_t GetPosition();
+
+    frc2::CommandPtr SysIdQuasistatic(frc2::sysid::Direction direction);
+    frc2::CommandPtr SysIdDynamic(frc2::sysid::Direction direction);
+   private:
+    std::function<bool ()> MovementBound(frc2::sysid::Direction direction);
+    
+    SparkFlex stageMotor;
+    SparkRelativeEncoder stageEncoder;
+    frc::ElevatorFeedforward m_stageFeedforward;
+    nt::GenericEntry* nt_lowerStageTargetPosition;
+    units::meter_t m_target;
+    
+    frc2::sysid::SysIdRoutine m_sysIdRoutine;
+  };
+
+  class UpperElevatorSubsystem : public frc2::SubsystemBase {
+   public:
+    UpperElevatorSubsystem();
+
+    frc2::CommandPtr Home();
+
+    void Move(double power);
+    void MoveTo(units::length::meter_t position);
+    void Stop();
+
+    units::meter_t GetPosition();
+
+    frc2::CommandPtr SysIdQuasistatic(frc2::sysid::Direction direction);
+    frc2::CommandPtr SysIdDynamic(frc2::sysid::Direction direction);
+   private:
+    std::function<bool ()> MovementBound(frc2::sysid::Direction direction);
+
+    TalonFXS stageMotor;
+    ctre::phoenix6::StatusSignal<units::angle::turn_t>& stagePosition;
+    nt::GenericEntry* nt_upperStageTargetPosition;
+
+    frc2::sysid::SysIdRoutine m_sysIdRoutine;
+  };
+
+  class LowerElevatorSubsystem lowerStage;
+  class UpperElevatorSubsystem upperStage;
+
+  ElevatorPoint currentElevatorPoint;
 };

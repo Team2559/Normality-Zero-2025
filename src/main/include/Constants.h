@@ -7,9 +7,10 @@
 #include <map>
 #include <units/time.h>
 #include <units/angle.h>
-#include <units/length.h>
 #include <units/angular_velocity.h>
+#include <units/length.h>
 #include <units/velocity.h>
+#include <units/acceleration.h>
 #include <units/voltage.h>
 #include <units/torque.h>
 #include <units/current.h>
@@ -46,7 +47,7 @@ namespace MotorConstants {
   // Torque constant for a CTR Minion, in newton-meters per amp
   constexpr units::unit_t<units::compound_unit<units::newton_meter, units::inverse<units::ampere>>> kTMinion = 0.01568_Nm / 1.0_A;
   // Speed constant for a CTR Minion, in turns per second per volt
-  constexpr units::unit_t<units::compound_unit<units::rpm, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
+  constexpr units::unit_t<units::compound_unit<units::turns_per_second, units::inverse<units::volt>>> kVMinion = 1.0_rad / kTMinion;
 }
 
 namespace DriveConstants {
@@ -194,22 +195,33 @@ namespace ElevatorConstants {
   constexpr bool kLowerStageInverted = false;
   constexpr bool kUpperStageInverted = true;
 
-  constexpr units::millimeter_t kLowerStageDistancePerRotation = 24 * 3_mm * 2;
+  constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kLowerStageDistancePerRotation = 24 * 3_mm * 2 / 360_deg;
   constexpr units::unit_t<units::compound_unit<units::meter, units::inverse<units::turn>>> kUpperStageDistancePerRotation = 24 * 3_mm / 360_deg;
 
+  constexpr units::meter_t kLowerStageMaxHeight = 1.4_m;
+  constexpr units::meter_t kUpperStageMaxHeight = 0.68_m;
+
+  constexpr double kLowerStageFeedbackScale = 200.0;
+  constexpr double kInvLowerStageFeedbackScale = 1.0 / kLowerStageFeedbackScale;
+
   namespace LowerStagePID {
-    constexpr double kP = 0.0;
+    constexpr double kP = 8.0905;
     constexpr double kI = 0.0;
-    constexpr double kD = 0.0;
-    constexpr double kFF = (1 / MotorConstants::kVNeoVortex).value();
+    constexpr double kD = 670.13 / 2.0;
+    constexpr units::volt_t kS = 0.01298_V;
+    constexpr units::volt_t kG = 0.67434_V;
+    constexpr units::unit_t<units::compound_unit<units::volts, units::inverse<units::meters_per_second>>> kV = 1 / (MotorConstants::kVNeoVortex * kLowerStageDistancePerRotation);
+    constexpr units::unit_t<units::compound_unit<units::volts, units::inverse<units::meters_per_second_squared>>> kA {0.36879 * 0.0};
   }
 
   namespace UpperStagePID {
-    constexpr double kP = 0.0;
+    constexpr double kP = 38.69 * kUpperStageDistancePerRotation.value(); // Volts per error
     constexpr double kI = 0.0;
-    constexpr double kD = 0.0;
-    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain
-    constexpr double kG = 0.0; // Gravity gain
+    constexpr double kD = 3.1643 * kUpperStageDistancePerRotation.value(); // Volts per change in error
+    constexpr double kS = 0.71063; // Friction gain, volts in the motion direction
+    constexpr double kG = 0.64645; // Gravity gain, volts in the upwards direction
+    constexpr double kV = (1 / MotorConstants::kVMinion).value(); // Velocity gain, volts per motion
+    constexpr double kA = 0.18681 * kUpperStageDistancePerRotation.value() * 0.0; // Acceleration gain, volts per change in motion
   }
 
   const std::map<ElevatorPoint, ElevatorCoordinate> kElevatorPointToElevatorCoordinate = {
@@ -219,12 +231,19 @@ namespace ElevatorConstants {
     {ElevatorPoint::AlgaeL2,   {0.40_m, 0.60_m}},
     {ElevatorPoint::CoralL3,   {0.75_m, 0_m}},
     {ElevatorPoint::AlgaeL3,   {0.75_m, 0.60_m}},
-    {ElevatorPoint::CoralL4,   {1.44_m, 0_m}},
-    {ElevatorPoint::Barge,     {1.44_m, 0.75_m}},
+    {ElevatorPoint::CoralL4,   {1.40_m, 0_m}},
+    {ElevatorPoint::Barge,     {1.40_m, 0.60_m}},
   };
 
-  constexpr units::centimeter_t kLowerStageMovementTolerance = 1_cm;
-  constexpr units::centimeter_t kUpperStageMovementTolerance = 1_cm;
+  constexpr units::second_t kMinHomeTime = 0.5_s;
+  
+  constexpr units::meter_t kLowerStageMovementTolerance = 1_cm;
+  constexpr units::meter_t kUpperStageMovementTolerance = 1_cm;
+
+  constexpr units::meters_per_second_t kOperatorSpeed = 0.5_mps;
+  constexpr units::meters_per_second_t kMaxSpeed = 1.0_mps;
+  constexpr units::meters_per_second_squared_t kMaxAccel = 3.0_mps_sq;
+  // constexpr units::meters_per_second_cubed_t kMaxJerk = 0.5_mps;
 }
 
 namespace CoralTroughConstants {
