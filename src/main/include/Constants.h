@@ -173,8 +173,8 @@ namespace VisionConstants {
   const frc::AprilTagFieldLayout kAprilTags = frc::AprilTagFieldLayout::LoadField(frc::AprilTagField::k2025ReefscapeWelded);
   // Camera focal point position and orientation relative to the robot origin
   constexpr frc::Transform3d kRobotToCam = frc::Transform3d(
-    frc::Translation3d(0.5_m, 0.0_m, 0.5_m),
-    frc::Rotation3d(0_rad, 0_rad, 0_rad)
+    frc::Translation3d(-14.5_in, 6.5_in, 28.75_in),
+    frc::Rotation3d(0_rad, 0_rad, 189_deg)
   );
 }
 
