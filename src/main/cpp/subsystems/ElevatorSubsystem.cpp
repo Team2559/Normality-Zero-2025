@@ -179,7 +179,9 @@ frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::Home() {
         stageMotor.Set(-0.05);
       },
       [this](bool wasCanceled) {
-        stageEncoder.SetPosition(0.0);
+        if (!wasCanceled) {
+          stageEncoder.SetPosition(0.0);
+        }
         stageMotor.StopMotor();
         SparkFlexConfig regularCurrentLimit;
         regularCurrentLimit.SmartCurrentLimit(defaultCurrentLimit);
@@ -229,7 +231,9 @@ frc2::CommandPtr ElevatorSubsystem::UpperElevatorSubsystem::Home() {
         stageMotor.SetControl(controls::DutyCycleOut(-0.03));
       },
       [this](bool wasCanceled) {
-        stageMotor.SetPosition(0.0_rad);
+        if (!wasCanceled) {
+          stageMotor.SetPosition(0.0_rad);
+        }
         stageMotor.StopMotor();
         stageMotor.GetConfigurator().Apply(currentLimitConfig);
         stageMotor.GetConfigurator().Apply(softLimitConfig);
@@ -366,9 +370,11 @@ frc2::CommandPtr ElevatorSubsystem::MoveTo(ElevatorPoint point) {
       lowerStage.MoveTo(pointCoordinate.lowerStagePosition);
       upperStage.MoveTo(pointCoordinate.upperStagePosition);
     },
-    [this](bool wasCancelled) -> void {
-      lowerStage.Stop();
-      upperStage.Stop();
+    [this, point](bool wasCancelled) -> void {
+      if (point == ElevatorPoint::Home || wasCancelled) {
+        lowerStage.Stop();
+        upperStage.Stop();
+      }
     },
     [this, pointCoordinate]() -> bool {
       return (frc::IsNear(pointCoordinate.lowerStagePosition, lowerStage.GetPosition(), kLowerStageMovementTolerance) &&
@@ -434,6 +440,7 @@ std::function<bool ()> ElevatorSubsystem::LowerElevatorSubsystem::MovementBound(
     case frc2::sysid::Direction::kReverse:
       return [this]() {return units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale} <= 0.01_m;};
   }
+  return nullptr;
 }
 
 frc2::CommandPtr ElevatorSubsystem::LowerElevatorSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
@@ -451,6 +458,7 @@ std::function<bool ()> ElevatorSubsystem::UpperElevatorSubsystem::MovementBound(
     case frc2::sysid::Direction::kReverse:
       return [this]() {return stagePosition.GetValue() * kUpperStageDistancePerRotation <= 0.01_m;};
   }
+  return nullptr;
 }
 
 frc2::CommandPtr ElevatorSubsystem::SysIdQuasistaticUpper(frc2::sysid::Direction direction) {
