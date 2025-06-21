@@ -53,8 +53,8 @@ ElevatorSubsystem::LowerElevatorSubsystem::LowerElevatorSubsystem() :
         auto stageVoltage = units::volt_t{stageMotor.GetBusVoltage()} * stageMotor.GetAppliedOutput();
         log->Motor("lowerElevatorStage")
             .voltage(stageVoltage)
-            .position(units::meter_t{stageEncoder.GetPosition() * kInvLowerStageFeedbackScale})
-            .velocity(units::meters_per_second_t{stageEncoder.GetVelocity() * kInvLowerStageFeedbackScale});
+            .position(GetPosition())
+            .velocity(GetVelocity());
       },
       this
     }
@@ -338,6 +338,13 @@ ElevatorPoint ElevatorSubsystem::GetPrevious(ElevatorPointType pointType) {
     return *elevatorPointIterator;
 }
 
+double ElevatorSubsystem::GetStability() {
+  units::meter_t upperPosition = upperStage.GetPosition();
+  units::meter_t lowerPosition = lowerStage.GetPosition();
+  units::meter_t astabilityHeight = units::math::max(upperPosition - 0.4_m, 0.0_m) + lowerPosition;
+  return 1.0 - units::math::min((astabilityHeight / 0.8_m).value(), 1.0);
+}
+
 void ElevatorSubsystem::LowerElevatorSubsystem::MoveTo(units::length::meter_t position) {
   units::meters_per_second_t m_lowerStageVelocity = (position - m_target) / 20_ms;
   m_target = position;
@@ -423,6 +430,10 @@ units::meter_t ElevatorSubsystem::LowerElevatorSubsystem::GetPosition() {
 units::meter_t ElevatorSubsystem::UpperElevatorSubsystem::GetPosition() {
   stagePosition.Refresh();
   return stagePosition.GetValue() * kUpperStageDistancePerRotation;
+}
+
+units::meters_per_second_t ElevatorSubsystem::LowerElevatorSubsystem::GetVelocity() {
+  return units::meters_per_second_t{stageEncoder.GetVelocity() * kInvLowerStageFeedbackScale};
 }
 
 frc2::CommandPtr ElevatorSubsystem::SysIdQuasistaticLower(frc2::sysid::Direction direction) {

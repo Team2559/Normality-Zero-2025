@@ -90,6 +90,8 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
   ElevatorPoint GetNext(ElevatorPointType pointType);
   ElevatorPoint GetPrevious(ElevatorPointType pointType);
 
+  double GetStability();
+
   frc2::CommandPtr MoveTo(ElevatorPoint point);
   frc2::CommandPtr MoveTo(std::function<ElevatorPoint ()> pointProvider);
   frc2::CommandPtr MoveToNext(ElevatorPointType pointType);
@@ -114,6 +116,7 @@ class ElevatorSubsystem : public frc2::SubsystemBase {
     void Stop();
 
     units::meter_t GetPosition();
+    units::meters_per_second_t GetVelocity();
 
     frc2::CommandPtr SysIdQuasistatic(frc2::sysid::Direction direction);
     frc2::CommandPtr SysIdDynamic(frc2::sysid::Direction direction);

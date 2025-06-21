@@ -228,53 +228,62 @@ std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls(
   Finally, the other controller joystick is used for commanding rotation and
   things work out so that this is also an inverted X axis.
   */
-  double LeftTrigAnalogVal = m_driverController.GetLeftTriggerAxis();
-  double LeftStickX = -m_driverController.GetLeftY();
-  double LeftStickY = -m_driverController.GetLeftX();
+  double leftTrigAnalogVal = m_driverController.GetLeftTriggerAxis();
+  double leftStickX = -m_driverController.GetLeftY();
+  double leftStickY = -m_driverController.GetLeftX();
   double rightStickRot = -m_driverController.GetRightX();
 
-  if (LeftTrigAnalogVal < .05)
-  {
-    LeftStickX *= DriveConstants::kSlowDrivePercent;
-    LeftStickY *= DriveConstants::kSlowDrivePercent;
+  double elevatorStability = m_elevatorSubsystem.GetStability();
+
+  if (elevatorStability < 1.0) {
+    double driveStabilityFactor = DriveConstants::kUnstableDrivePercent +
+                                  (DriveConstants::kSlowDrivePercent - DriveConstants::kUnstableDrivePercent) * elevatorStability;
+    leftStickX *= driveStabilityFactor;
+    leftStickY *= driveStabilityFactor;
+    double turnStabilityFactor = DriveConstants::kUnstableTurnPercent +
+                                 (1.0 - DriveConstants::kUnstableDrivePercent) * elevatorStability;
+    rightStickRot *= turnStabilityFactor;
+  } else if (leftTrigAnalogVal < .05) {
+    leftStickX *= DriveConstants::kSlowDrivePercent;
+    leftStickY *= DriveConstants::kSlowDrivePercent;
   } else {
     double fastDrivePercent = nt_fastDriveSpeed->GetDouble(1.0);
-    LeftStickX *= fastDrivePercent;
-    LeftStickY *= fastDrivePercent;
+    leftStickX *= fastDrivePercent;
+    leftStickY *= fastDrivePercent;
   }
 
   if (m_isRedAlliance) {
-    LeftStickX *= -1.0;
-    LeftStickY *= -1.0;
+    leftStickX *= -1.0;
+    leftStickY *= -1.0;
   }
   
 
   if (m_triggerSpeedEnabled) // scale speed by analog trigger
   {
-    double RightTrigAnalogVal = m_driverController.GetRightTriggerAxis();
-    RightTrigAnalogVal = ConditionRawTriggerInput(RightTrigAnalogVal);
+    double rightTrigAnalogVal = m_driverController.GetRightTriggerAxis();
+    rightTrigAnalogVal = ConditionRawTriggerInput(rightTrigAnalogVal);
 
-    if (LeftStickX != 0 || LeftStickY != 0)
+    if (leftStickX != 0 || leftStickY != 0)
     {
-      if (LeftStickX != 0)
+      if (leftStickX != 0)
       {
-        double LeftStickTheta = atan(LeftStickY / LeftStickX);
-        LeftStickX = RightTrigAnalogVal * cos(LeftStickTheta);
-        LeftStickY = RightTrigAnalogVal * sin(LeftStickTheta);
+        double leftStickTheta = atan(leftStickY / leftStickX);
+        leftStickX = rightTrigAnalogVal * cos(leftStickTheta);
+        leftStickY = rightTrigAnalogVal * sin(leftStickTheta);
       }
       else
       {
-        LeftStickY = std::copysign(RightTrigAnalogVal, LeftStickY);
+        leftStickY = std::copysign(rightTrigAnalogVal, leftStickY);
       }
     }
   }
   else // scale speed by analog stick
   {
-    LeftStickX = ConditionRawJoystickInput(LeftStickX);
-    LeftStickY = ConditionRawJoystickInput(LeftStickY);
+    leftStickX = ConditionRawJoystickInput(leftStickX);
+    leftStickY = ConditionRawJoystickInput(leftStickY);
   }
 
   rightStickRot = ConditionRawJoystickInput(rightStickRot);
 
-  return std::make_tuple(LeftStickX, LeftStickY, rightStickRot, m_fieldOriented);
+  return std::make_tuple(leftStickX, leftStickY, rightStickRot, m_fieldOriented);
 }

@@ -91,6 +91,7 @@ namespace DriveConstants {
   // (since something in the ballpark is needed here in order to to drive).
   constexpr units::meters_per_second_t kMaxDriveSpeed = 6895_rpm * kDriveDistancePerRotation;
   constexpr double kSlowDrivePercent = 0.80;
+  constexpr double kUnstableDrivePercent = 0.40;
 
   inline constexpr double kSteerGearRatio = 50.0/16.0 * 60.0/10.0; // 18.75
 
@@ -114,6 +115,7 @@ namespace DriveConstants {
   // be empirically adjusted (but check).
   const units::degrees_per_second_t kMaxTurnRate =
       kMaxDriveSpeed / kDriveMetersPerSteerCircle * 360.0_deg;
+  constexpr double kUnstableTurnPercent = 0.60;
 
   // CAN ID assignments.
   constexpr int kFrontLeftDriveMotorCanID = 1;
