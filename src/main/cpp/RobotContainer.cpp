@@ -4,7 +4,6 @@
 
 #include "RobotContainer.h"
 #include "ButtonUtil.h"
-#include "commands/Autos.h"
 
 #include <frc/smartdashboard/SmartDashboard.h>
 #include <frc/shuffleboard/Shuffleboard.h>
@@ -27,6 +26,9 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
 
   // Stream usb camera over the network
   frc::CameraServer::StartAutomaticCapture();
+
+  // Set up autonomous chooser
+  ListAutonomousCommands();
 
   m_driveSubsystem.SetDefaultCommand(frc2::RunCommand([this]() -> void {
     const auto controls = GetDriveTeleopControls();
@@ -209,8 +211,27 @@ void RobotContainer::ConfigureBindings() {
   m_operatorController.POVLeft().OnTrue(m_elevatorSubsystem.Home());
 }
 
+void RobotContainer::ListAutonomousCommands() {
+  using namespace autos;
+  m_autoChooser.SetDefaultOption("Center", AutoProgram::kCenter);
+  m_autoChooser.AddOption("Team Barge", AutoProgram::kTeamBarge);
+  m_autoChooser.AddOption("Opponent Barge", AutoProgram::kOpponentBarge);
+  frc::SmartDashboard::PutData("Auto Mode", &m_autoChooser);
+}
+
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
-  return autos::BargeSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
+  using namespace autos;
+  // Drive 1m forwards during auto
+  switch (m_autoChooser.GetSelected()) {
+    case AutoProgram::kCenter:
+      return autos::CenterAuto(m_driveSubsystem, m_coralTroughSubsystem);
+    case AutoProgram::kTeamBarge:
+      return autos::BargeSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
+    case AutoProgram::kOpponentBarge:
+      return autos::ProcessorSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
+    default:
+      return autos::FallbackAuto(m_driveSubsystem);
+  };
 }
 
 std::tuple<double, double, double, bool> RobotContainer::GetDriveTeleopControls()

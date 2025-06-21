@@ -6,6 +6,13 @@
 #include "subsystems/CoralTroughSubsystem.h"
 
 namespace autos {
+  enum class AutoProgram {
+    kFallback,
+    kCenter,
+    kOpponentBarge,
+    kTeamBarge,
+  };
+
   /**
    * Fallback auto to drive off line if loading the desired auto fails 
    */
