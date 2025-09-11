@@ -1,5 +1,7 @@
 #include "commands/SwerveTrajectoryCommand.h"
 
+#include <frc/DriverStation.h>
+
 using namespace choreo;
 
 SwerveTrajectoryCommand::SwerveTrajectoryCommand(DriveSubsystem& subsystem, Trajectory<SwerveSample>& trajectory) :
@@ -18,7 +20,8 @@ void SwerveTrajectoryCommand::Initialize() {
 }
 
 void SwerveTrajectoryCommand::Execute() {
-  std::optional<SwerveSample> sample = m_trajectory.SampleAt(m_timer.Get());
+  bool isRed = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::kBlue) == frc::DriverStation::kRed;
+  std::optional<SwerveSample> sample = m_trajectory.SampleAt(m_timer.Get(), isRed);
   if (sample.has_value()) {
     m_driveSubsytem.FollowTrajectory(sample.value());
   }
