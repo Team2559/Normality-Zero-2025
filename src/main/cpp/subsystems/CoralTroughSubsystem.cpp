@@ -11,7 +11,24 @@ using namespace CoralTroughConstants;
 
 CoralTroughSubsystem::CoralTroughSubsystem() :
   rollerBar{kRollerBarMotorCanID, SparkMax::MotorType::kBrushless},
-  flapServo{kFlapServoPWMChannel}
+  flapServo{kFlapServoPWMChannel},
+  m_sysIdRoutine{
+    frc2::sysid::Config{{}, {}, {}, nullptr},
+    frc2::sysid::Mechanism{
+      [this](units::volt_t driveVoltage) {
+        rollerBar.SetVoltage(driveVoltage);
+      },
+      [this](frc::sysid::SysIdRoutineLog* log) {
+        auto rollerBarVoltage = units::volt_t{rollerBar.GetBusVoltage()} * rollerBar.GetAppliedOutput();
+        auto rollerBarEncoder= rollerBar.GetEncoder();
+        log->Motor("coralTrough")
+            .voltage(rollerBarVoltage)
+            .position(units::turn_t{rollerBarEncoder.GetPosition()})
+            .velocity(units::revolutions_per_minute_t{rollerBarEncoder.GetVelocity()}.convert<units::turns_per_second>());
+      },
+      this
+    }
+  }
 {
   {
     SparkMaxConfig rollerBarConfig;
@@ -85,4 +102,12 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       {this}
     ).WithTimeout(kDispenseTimeout)
   ).Repeatedly().Until([]() -> bool {return successfullyEjected;}).WithTimeout(kMaxDispenseTime);
+}
+
+frc2::CommandPtr CoralTroughSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
+  return m_sysIdRoutine.Quasistatic(direction);
+}
+
+frc2::CommandPtr CoralTroughSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
+  return m_sysIdRoutine.Dynamic(direction);
 }

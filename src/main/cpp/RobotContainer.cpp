@@ -86,6 +86,8 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
   mechTab.Add("Lower Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
   mechTab.Add("Upper Stage Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
   mechTab.Add("Upper Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
+  mechTab.Add("Coral Trough Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
+  mechTab.Add("Coral Trough Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
 
   frc2::NetworkButton(
     nt::NetworkTableInstance::GetDefault()
@@ -118,6 +120,23 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
     .WhileTrue(
       m_elevatorSubsystem.SysIdDynamicUpper(frc2::sysid::Direction::kForward)
         .AndThen(m_elevatorSubsystem.SysIdDynamicUpper(frc2::sysid::Direction::kReverse))
+    );
+
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Coral Trough Quasistatic SysID")
+  )
+    .WhileTrue(
+      m_coralTroughSubsystem.SysIdQuasistatic(frc2::sysid::Direction::kForward)
+        .AndThen(m_coralTroughSubsystem.SysIdQuasistatic(frc2::sysid::Direction::kReverse))
+    );
+  frc2::NetworkButton(
+    nt::NetworkTableInstance::GetDefault()
+      .GetBooleanTopic("/Shuffleboard/Mechanisms/Coral Trough Dynamic SysID")
+  )
+    .WhileTrue(
+      m_coralTroughSubsystem.SysIdDynamic(frc2::sysid::Direction::kForward)
+        .AndThen(m_coralTroughSubsystem.SysIdDynamic(frc2::sysid::Direction::kReverse))
     );
 }
 
