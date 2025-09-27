@@ -155,10 +155,14 @@ void DriveSubsystem::Drive(units::meters_per_second_t xSpeed,
 void DriveSubsystem::FollowTrajectory(const choreo::SwerveSample& sample) {
   frc::Pose2d pose = GetPose().ToPose2d();
 
+  auto robot_heading = pose.Rotation().Radians();
+  auto sample_heading = sample.heading;
+  auto target_heading = frc::AngleModulus(sample_heading - robot_heading) + robot_heading;
+
   units::meters_per_second_t xFeedback{m_xController.Calculate(pose.X().value(), sample.x.value())};
   units::meters_per_second_t yFeedback{m_yController.Calculate(pose.Y().value(), sample.y.value())};
   units::radians_per_second_t rotFeedback{
-      m_rController.Calculate(pose.Rotation().Radians().value(), sample.heading.value())
+      m_rController.Calculate(robot_heading.value(), target_heading.value())
   };
 
   nt_xSetpoint->SetDouble(sample.x.value());
