@@ -11,6 +11,7 @@ SwerveTrajectoryCommand::SwerveTrajectoryCommand(DriveSubsystem& subsystem, Traj
 }
 
 void SwerveTrajectoryCommand::Initialize() {
+  m_invertForRed = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::kBlue) == frc::DriverStation::kRed;
   m_timer.Restart();
   auto initialPose = m_trajectory.GetInitialPose();
   if (initialPose.has_value()) {
@@ -20,8 +21,7 @@ void SwerveTrajectoryCommand::Initialize() {
 }
 
 void SwerveTrajectoryCommand::Execute() {
-  bool isRed = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::kBlue) == frc::DriverStation::kRed;
-  std::optional<SwerveSample> sample = m_trajectory.SampleAt(m_timer.Get(), isRed);
+  std::optional<SwerveSample> sample = m_trajectory.SampleAt(m_timer.Get(), m_invertForRed);
   if (sample.has_value()) {
     m_driveSubsytem.FollowTrajectory(sample.value());
   }

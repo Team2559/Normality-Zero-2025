@@ -23,5 +23,6 @@ class SwerveTrajectoryCommand : public frc2::CommandHelper<frc2::Command, Swerve
   DriveSubsystem& m_driveSubsytem;
   choreo::Trajectory<choreo::SwerveSample>& m_trajectory;
 
+  bool m_invertForRed = false;
   frc::Timer m_timer;
 };
