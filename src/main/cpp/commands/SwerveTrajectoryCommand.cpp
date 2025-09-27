@@ -13,11 +13,11 @@ SwerveTrajectoryCommand::SwerveTrajectoryCommand(DriveSubsystem& subsystem, Traj
 void SwerveTrajectoryCommand::Initialize() {
   m_invertForRed = frc::DriverStation::GetAlliance().value_or(frc::DriverStation::kBlue) == frc::DriverStation::kRed;
   m_timer.Restart();
-  auto initialPose = m_trajectory.GetInitialPose();
+  auto initialPose = m_trajectory.GetInitialPose(m_invertForRed);
   if (initialPose.has_value()) {
     m_driveSubsytem.ResetPose(frc::Pose3d(initialPose.value()));
   }
-  m_driveSubsytem.field.GetObject("traj")->SetPoses(m_trajectory.GetPoses());
+  m_driveSubsytem.field.GetObject("traj")->SetPoses((m_invertForRed ? m_trajectory.Flipped() : m_trajectory).GetPoses());
 }
 
 void SwerveTrajectoryCommand::Execute() {
