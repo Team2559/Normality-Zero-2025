@@ -11,6 +11,8 @@ namespace autos {
     kCenter,
     kOpponentBarge,
     kTeamBarge,
+    kOpponentBargeAndLoad,
+    kTeamBargeAndLoad,
   };
 
   /**
@@ -29,7 +31,18 @@ namespace autos {
   frc2::CommandPtr ProcessorSideAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
 
   /**
-   * Auto starting in the barge side lane (36in from wall) and dropping a single coral on L1
+   * Auto starting in the barge side lane (36in from the wall) and dropping a single coral on L1
    */
   frc2::CommandPtr BargeSideAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
+
+  /**
+   * Same as ProcessorSideAuto, except adds driving to the loading station to the end
+   */
+  frc2::CommandPtr ProcessorSideLoadAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
+
+  /**
+   * Same as BargeSideAuto, except adds driving to the loading station to the end
+   */
+  frc2::CommandPtr BargeSideLoadAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem);
+
 }  // namespace autos

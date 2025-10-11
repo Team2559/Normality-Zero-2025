@@ -7,6 +7,8 @@
 static auto centerTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("CenterAuto");
 static auto processorSideTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("ProcessorSideAuto");
 static auto bargeSideTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("BargeSideAuto");
+static auto processorSideLoadTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("ProcessorSideLoadingAuto");
+static auto bargeSideLoadTrajectory = choreo::Choreo::LoadTrajectory<choreo::SwerveSample>("BargeSideLoadingAuto");
 
 frc2::CommandPtr autos::FallbackAuto(DriveSubsystem& driveSubsystem) {
   return frc2::RunCommand([&]() {
@@ -51,6 +53,39 @@ frc2::CommandPtr autos::BargeSideAuto(DriveSubsystem& driveSubsystem, CoralTroug
     return SwerveTrajectoryCommand(driveSubsystem, bargeSideTrajectory.value())
       .AndThen(
         coralTroughSubsystem.DispenseCoral()
+      )
+      .BeforeStarting([]() {
+        printf(">>>Running trajectory auto\n");
+      });
+  } else {
+    return FallbackAuto(driveSubsystem);
+  }
+}
+
+
+frc2::CommandPtr autos::ProcessorSideLoadAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem) {
+  if (centerTrajectory.has_value()) {
+    return SwerveTrajectoryCommand(driveSubsystem, processorSideTrajectory.value())
+      .AndThen(
+        coralTroughSubsystem.DispenseCoral()
+      ).AndThen(
+        SwerveTrajectoryCommand(driveSubsystem, processorSideLoadTrajectory.value()).ToPtr()
+      )
+      .BeforeStarting([]() {
+        printf(">>>Running trajectory auto\n");
+      });
+  } else {
+    return FallbackAuto(driveSubsystem);
+  }
+}
+
+frc2::CommandPtr autos::BargeSideLoadAuto(DriveSubsystem& driveSubsystem, CoralTroughSubsystem& coralTroughSubsystem) {
+  if (centerTrajectory.has_value()) {
+    return SwerveTrajectoryCommand(driveSubsystem, bargeSideTrajectory.value())
+      .AndThen(
+        coralTroughSubsystem.DispenseCoral()
+      ).AndThen(
+        SwerveTrajectoryCommand(driveSubsystem, bargeSideLoadTrajectory.value()).ToPtr()
       )
       .BeforeStarting([]() {
         printf(">>>Running trajectory auto\n");

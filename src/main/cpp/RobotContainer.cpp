@@ -240,7 +240,6 @@ void RobotContainer::ListAutonomousCommands() {
 
 frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
   using namespace autos;
-  // Drive 1m forwards during auto
   switch (m_autoChooser.GetSelected()) {
     case AutoProgram::kCenter:
       return autos::CenterAuto(m_driveSubsystem, m_coralTroughSubsystem);
@@ -248,7 +247,12 @@ frc2::CommandPtr RobotContainer::GetAutonomousCommand() {
       return autos::BargeSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
     case AutoProgram::kOpponentBarge:
       return autos::ProcessorSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
+    case AutoProgram::kTeamBargeAndLoad:
+      return autos::BargeSideLoadAuto(m_driveSubsystem, m_coralTroughSubsystem);
+    case AutoProgram::kOpponentBargeAndLoad:
+      return autos::ProcessorSideAuto(m_driveSubsystem, m_coralTroughSubsystem);
     default:
+      // Drive 1m forwards during auto
       return autos::FallbackAuto(m_driveSubsystem);
   };
 }
