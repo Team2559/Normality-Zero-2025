@@ -265,7 +265,7 @@ namespace CoralTroughConstants {
 
   constexpr units::revolutions_per_minute_t kRollerBarDispenseSpeed { 60.0 };
   constexpr units::turn_t kRollerBarPrimeDistance { -0.33 };
-  constexpr units::turn_t kRollerBarStopDistance { 8.0 };
+  constexpr units::turn_t kRollerBarStopDistance { 32.0 };
 
   namespace RollerPID {
     constexpr double kP = 0.003;

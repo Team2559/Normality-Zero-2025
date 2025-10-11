@@ -63,18 +63,19 @@ frc2::CommandPtr CoralTroughSubsystem::LoadCoral() {
 }
 
 frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
-  static bool successfullyEjected = false;
+  std::shared_ptr<bool> successfullyEjected = std::make_shared<bool>(false);
 
   return frc2::FunctionalCommand(
-    [this]() -> void {
+    [this, successfullyEjected]() -> void {
+      // Start unjamming
       rollerBar.GetEncoder().SetPosition(0.0);
       flapServo.Set(kFlapServoDejam);
-      successfullyEjected = false;
+      *successfullyEjected = false;
     },
     [this]() -> void {
       rollerBar.GetClosedLoopController().SetReference(-kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
     },
-    [this](bool wasCancelled) -> void {
+    [this](bool interrupted) -> void {
       rollerBar.StopMotor();
       flapServo.Set(kFlapServoUp);
     },
@@ -85,15 +86,16 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
   ).AndThen(
     frc2::FunctionalCommand(
       [this]() -> void {
+        // Start ejection
         rollerBar.GetEncoder().SetPosition(0.0);
       },
       [this]() -> void {
         rollerBar.GetClosedLoopController().SetReference(kRollerBarDispenseSpeed.value(), SparkMax::ControlType::kVelocity);
       },
-      [this](bool wasCancelled) -> void {
+      [this, successfullyEjected](bool interrupted) -> void {
         rollerBar.StopMotor();
-        if (!wasCancelled) {
-          successfullyEjected = true;
+        if (!interrupted) {
+          *successfullyEjected = true;
         }
       },
       [this]() -> bool {
@@ -101,7 +103,7 @@ frc2::CommandPtr CoralTroughSubsystem::DispenseCoral() {
       },
       {this}
     ).WithTimeout(kDispenseTimeout)
-  ).Repeatedly().Until([]() -> bool {return successfullyEjected;}).WithTimeout(kMaxDispenseTime);
+  ).Repeatedly().Until([successfullyEjected]() -> bool {return *successfullyEjected;}).WithTimeout(kMaxDispenseTime);
 }
 
 frc2::CommandPtr CoralTroughSubsystem::SysIdQuasistatic(frc2::sysid::Direction direction) {
