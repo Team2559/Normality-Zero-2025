@@ -235,6 +235,8 @@ void RobotContainer::ListAutonomousCommands() {
   m_autoChooser.SetDefaultOption("Center", AutoProgram::kCenter);
   m_autoChooser.AddOption("Team Barge", AutoProgram::kTeamBarge);
   m_autoChooser.AddOption("Opponent Barge", AutoProgram::kOpponentBarge);
+  m_autoChooser.AddOption("Team Barge and Load", AutoProgram::kTeamBargeAndLoad);
+  m_autoChooser.AddOption("Opponent Barge and Load", AutoProgram::kOpponentBargeAndLoad);
   frc::SmartDashboard::PutData("Auto Mode", &m_autoChooser);
 }
 
