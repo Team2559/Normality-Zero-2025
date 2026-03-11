@@ -3,6 +3,7 @@
 
 #include <frc2/command/FunctionalCommand.h>
 #include <units/angle.h>
+#include <frc/simulation/RoboRioSim.h>
 
 #include "subsystems/CoralTroughSubsystem.h"
 #include "Constants.h"
@@ -28,7 +29,8 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
       },
       this
     }
-  }
+  },
+  rollerBarSim{&rollerBar, &rollerBarMotor}
 {
   {
     SparkMaxConfig rollerBarConfig;
@@ -47,7 +49,7 @@ CoralTroughSubsystem::CoralTroughSubsystem() :
 
 frc2::CommandPtr CoralTroughSubsystem::LoadCoral() {
   return frc2::FunctionalCommand(
-    [this]() -> void {
+    []() -> void {
     },
     [this]() -> void {
       flapServo.Set(kFlapServoDown);
@@ -55,7 +57,7 @@ frc2::CommandPtr CoralTroughSubsystem::LoadCoral() {
     [this](bool wasCancelled) -> void {
       flapServo.Set(kFlapServoUp);
     },
-    [this]() -> bool {
+    []() -> bool {
       return false;
     },
     {this}
@@ -112,4 +114,18 @@ frc2::CommandPtr CoralTroughSubsystem::SysIdQuasistatic(frc2::sysid::Direction d
 
 frc2::CommandPtr CoralTroughSubsystem::SysIdDynamic(frc2::sysid::Direction direction) {
   return m_sysIdRoutine.Dynamic(direction);
+}
+
+void CoralTroughSubsystem::SimulationPeriodic() {
+  rollerBarPhysSim.SetInput(frc::Vectord<1>{rollerBarSim.GetAppliedOutput() * frc::sim::RoboRioSim::GetVInVoltage().value()});
+  rollerBarPhysSim.Update(20_ms); // Default loop time
+
+  rollerBarSim.iterate(
+    rollerBarPhysSim.GetAngularVelocity().convert<units::revolutions_per_minute>().value(),
+    frc::sim::RoboRioSim::GetVInVoltage().value(),
+    (20_ms).convert<units::second>().value()
+  );
+
+  rollerBarSim.GetRelativeEncoderSim().SetPosition(rollerBarPhysSim.GetAngularPosition().convert<units::turn>().value());
+  rollerBarSim.GetRelativeEncoderSim().SetVelocity(rollerBarPhysSim.GetAngularVelocity().convert<units::revolutions_per_minute>().value());
 }

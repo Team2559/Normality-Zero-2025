@@ -81,6 +81,7 @@ RobotContainer::RobotContainer() : m_visionSubsystem(
   // mechTab.Add("Algae Arm Subsystem", m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Algae Arm Subsystem", &m_algaeArmSubsystem);
   frc::SmartDashboard::PutData("Elevator Subsystem", &m_elevatorSubsystem);
+  frc::SmartDashboard::PutData("Coral Trough Subsystem", &m_coralTroughSubsystem);
 
   mechTab.Add("Lower Stage Quasistatic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
   mechTab.Add("Lower Stage Dynamic SysID", false).WithWidget(frc::BuiltInWidgets::kToggleButton);
