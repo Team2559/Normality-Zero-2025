@@ -175,12 +175,12 @@ void RobotContainer::ConfigureBindings() {
     ).WithName("LiveWindow")
   );
 
-  m_driverController.RightBumper().ToggleOnTrue(m_algaeArmSubsystem.Release());
+  m_driverController.RightBumper().ToggleOnTrue(m_algaeArmSubsystem.Release().WithName("Release Algae"));
 
-  // m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral());
-  m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral());
-  m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab());
-  m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release());
+  // m_operatorController.A().OnTrue(m_coralTroughSubsystem.LoadCoral().WithName("Load Coral"));
+  m_operatorController.B().OnTrue(m_coralTroughSubsystem.DispenseCoral().WithName("Dispense Coral"));
+  m_operatorController.X().ToggleOnTrue(m_algaeArmSubsystem.Grab().WithName("Grab Algae"));
+  m_operatorController.Y().ToggleOnTrue(m_algaeArmSubsystem.Release().WithName("Release Algae"));
 
   // TODO; use speed instead of power
   m_operatorController.RightBumper().WhileTrue(frc2::FunctionalCommand(
@@ -210,10 +210,10 @@ void RobotContainer::ConfigureBindings() {
     {&m_algaeArmSubsystem}
   ).WithName("Lower Arm"));
 
-  m_operatorController.LeftBumper().WhileTrue(m_climbSubsystem.Climb());
+  m_operatorController.LeftBumper().WhileTrue(m_climbSubsystem.Climb().WithName("Climb"));
   m_operatorController.LeftTrigger(0.05).WhileTrue(m_climbSubsystem.Climb([this]() {
     return m_operatorController.GetLeftTriggerAxis() * ClimbConstants::kMaxClimbPower;
-  }));
+  }).WithName("Prepare Climb"));
 
   m_operatorController.Back().ToggleOnTrue(m_elevatorSubsystem.ManualMove(
      [this]() -> units::meters_per_second_t {
@@ -222,7 +222,7 @@ void RobotContainer::ConfigureBindings() {
      [this]() -> units::meters_per_second_t {
        return ConditionRawJoystickInput(-m_operatorController.GetRightY()) * ElevatorConstants::kOperatorSpeed;
      }
-  ));
+  ).WithName("Manual Elevator"));
 
   m_operatorController.POVDown().OnTrue(m_elevatorSubsystem.MoveToPrevious(ElevatorPointType::Algae));
   m_operatorController.POVUp().OnTrue(m_elevatorSubsystem.MoveToNext(ElevatorPointType::Algae));
